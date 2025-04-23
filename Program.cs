@@ -147,5 +147,54 @@
             }
 
         }
+
+        // ===================== User Features Function ==========================
+        // Request Account Creation fiunction
+        public static void RequestAccountCreation()
+        {
+
+        }
+        // Deposit Function 
+        public static void Deposit()
+        {
+
+        }
+        // Withdraw Function 
+        public static void withdraw()
+        {
+
+        }
+        // Check Balance Function
+        public static void CheckBalance()
+        {
+
+        }
+        // Submit Review Function 
+        public static void SubmitReview()
+        {
+
+        }
+
+        // ===================== Admin Features Function ==========================
+        // View Pending Requests Function 
+        public static void ViewPendingRequests()
+        {
+
+        }
+        // View All Accounts Function 
+        public static void ViewAllAccounts()
+        {
+
+        }
+        // View Reviews Function 
+        public static void ViewReviews()
+        {
+
+        }
+        // Process Account Request Function 
+        public static void ProcessAccountRequest()
+        {
+
+        }
     }
 }
