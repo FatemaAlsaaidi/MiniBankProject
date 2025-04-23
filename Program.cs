@@ -1,7 +1,12 @@
-﻿namespace MiniBankProject
+﻿using System.Text.RegularExpressions;
+using System.Xml.Linq;
+
+namespace MiniBankProject
 {
     internal class Program
     {
+        //static Queue<(string name, string nationalID)> createAccountRequests = new Queue<(string, string)>();
+        static Queue<string> createAccountRequests = new Queue<string>(); // format: "Name|NationalID"
         static void Main(string[] args)
         {
             bool UsersSystemMenu = true;
@@ -152,6 +157,32 @@
         // Request Account Creation fiunction
         public static void RequestAccountCreation()
         {
+            // Error handling 
+            try
+            {
+                // ask user to enter his name
+                Console.WriteLine("Enter Your Name: ");
+                string name = Console.ReadLine();
+                // valid the name input 
+                string ValidName = stringOnlyLetterValidation(name);
+                // ask user to enter his national ID 
+                Console.WriteLine("Enter your National ID: ");
+                string ID = Console.ReadLine();
+                // valid the ID input
+                string ValidID = StringWithNumberValidation(ID);
+
+                // save user name and id in the single string value 
+                string request = ValidName + '|' + ValidID;
+                // add into createAccountRequests queue 
+                createAccountRequests.Enqueue(request);
+                // display message submit successfully 
+                Console.WriteLine("Request Account Creation successfully submit");
+            }
+            catch
+            {
+                // display message submit failed 
+                Console.WriteLine("Request Account Creation failed submit");
+            }
 
         }
         // Deposit Function 
@@ -195,6 +226,108 @@
         public static void ProcessAccountRequest()
         {
 
+        }
+
+        // ************************************************* Validation **********************************************
+        // string validation 
+        public static string stringOnlyLetterValidation(string word)
+        {
+            bool IsValid = true;
+            string ValidWord="";
+            if (string.IsNullOrEmpty(word) && word.All(char.IsLetter))
+            {
+                Console.WriteLine("Input is just empty!");
+                IsValid = false;
+                
+            }
+            else
+            {
+                IsValid = true;
+            }
+
+            if (Regex.IsMatch(word, @"^[a-zA-Z]+$"))
+            {
+                Console.WriteLine("Valid: only letters.");
+                IsValid = true;
+            }
+            else
+            {
+                Console.WriteLine("Invalid: contains non-letter characters.");
+                IsValid = false;
+            }
+
+            if (IsValid)
+            {
+                ValidWord = word;
+            }
+            else
+            {
+                Console.WriteLine("word unsaved");            
+            }
+            return ValidWord;
+        }
+        // validate numeric strting
+        public static string StringWithNumberValidation(string word)
+        {
+            bool IsValid = true;
+            string ValidWord = "";
+            if (string.IsNullOrWhiteSpace(word))
+            {
+                Console.WriteLine("Input is just spaces or empty!");
+                IsValid = false;
+
+            }
+            else
+            {
+                IsValid = true;
+            }
+            if (Regex.IsMatch(word, @"^\d+$"))
+            {
+                Console.WriteLine("Valid: only numbers.");
+                IsValid = true;
+
+            }
+            else
+            {
+                Console.WriteLine("Invalid: contains non-numeric characters.");
+                IsValid = false;
+            }
+            if (IsValid)
+            {
+                ValidWord = word;
+            }
+            else
+            {
+                Console.WriteLine("word unsaved! try agine");
+            }
+            return ValidWord;
+        }
+        // integer validation 
+
+        public static int NationalIDValidation(string num)
+        {
+            int ValidNumber = 0;
+            bool IsValid = true;
+            if (int.TryParse(num, out int result) && num.Length == 8)
+            {
+                Console.WriteLine("Valid integer: " + result);
+                IsValid = true;
+            }
+            else
+            {
+                Console.WriteLine("Invalid integer value.");
+                IsValid = false;
+            }
+            if (IsValid)
+            {
+                ValidNumber = result;
+            }
+            else
+            {
+                Console.WriteLine("ID Number unsaved! try agine");
+            }
+
+            return ValidNumber;
         }
     }
 }
