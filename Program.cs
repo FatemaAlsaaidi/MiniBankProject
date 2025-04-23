@@ -1,12 +1,24 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Net.Http.Headers;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace MiniBankProject
 {
     internal class Program
+
     {
+        // generate ID number for every account 
+        static int AccountIDNumber;
+        // Global lists(parallel)
+        static List<int> AccountIDNumbers = new List<int>();
+        static List<string> AccountNames = new List<string>();
+        static List<double> Balances = new List<double>();
+
         //static Queue<(string name, string nationalID)> createAccountRequests = new Queue<(string, string)>();
         static Queue<string> createAccountRequests = new Queue<string>(); // format: "Name|NationalID"
+
+        // ======================================== Menu Functions =================================
         static void Main(string[] args)
         {
             bool UsersSystemMenu = true;
@@ -225,7 +237,11 @@ namespace MiniBankProject
         // Process Account Request Function 
         public static void ProcessAccountRequest()
         {
-
+            foreach (string request in createAccountRequests)
+            {
+                string[] SplitRrquest = multiCharString.Split
+            }
+            
         }
 
         // ************************************************* Validation **********************************************
