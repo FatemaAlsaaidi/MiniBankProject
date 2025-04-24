@@ -12,6 +12,8 @@ namespace MiniBankProject
         static int LastAccountIDNumber = 0;
         // Global lists(parallel)
         static List<int> AccountIDNumbers = new List<int>();
+
+        // Account data 
         static List<string> AccountUserNames = new List<string>();
         static List<string> AccountUserNationalID = new List<string>();
         static List<double> Balances = new List<double>();
@@ -81,7 +83,8 @@ namespace MiniBankProject
                 {
                     // case to Request Account Creation
                     case '1':
-
+                        RequestAccountCreation();
+                        Console.ReadLine();
                         break;
                     // case to Deposit
                     case '2':
@@ -122,6 +125,7 @@ namespace MiniBankProject
             while (InAdminMenu)
             {
                 // display All Admin Menu
+                Console.Clear();
                 Console.WriteLine("\n------ Admin Menu ------");
                 Console.WriteLine("1. Process Next Account Request");
                 Console.WriteLine("2. View Submitted Reviews");
@@ -137,7 +141,8 @@ namespace MiniBankProject
                 {
                     // case to Process Next Account Request
                     case '1':
-
+                        ProcessAccountRequest();
+                        Console.ReadLine();
                         break;
                     // case to View Submitted Reviews
                     case '2':
@@ -145,7 +150,8 @@ namespace MiniBankProject
                         break;
                     // case to View All Accounts
                     case '3':
-
+                        ViewAllAccounts();
+                        Console.ReadLine();
                         break;
                     // case to View Pending Account Requests
                     case '4':
@@ -228,7 +234,16 @@ namespace MiniBankProject
         // View All Accounts Function 
         public static void ViewAllAccounts()
         {
+            
+            Console.WriteLine($"Account ID {"|"} User Name {"|"} National ID {"|"} Balance Amount");
+            //iteration for loop all index values in lists
+            for (int i = 0; i < AccountUserNationalID.Count; i++)
+            {
+                //display list values for every index
+                Console.WriteLine($"{AccountIDNumbers[i]}\t{"|"}{AccountUserNames[i]}\t{"|"}{AccountUserNationalID[i]}\t{"|"}{Balances[i]}");
 
+            }
+            
         }
         // View Reviews Function 
         public static void ViewReviews()
@@ -262,6 +277,8 @@ namespace MiniBankProject
                 // Add user initial balance in the Balances list
                 Balances.Add(balance);
                 Console.WriteLine($"Account created for {UserName} with Account Number: {NewAccountIDNumber}");
+                LastAccountIDNumber = NewAccountIDNumber;
+
 
             }
             catch
