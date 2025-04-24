@@ -155,7 +155,8 @@ namespace MiniBankProject
                         break;
                     // case to View Pending Account Requests
                     case '4':
-                        
+                        ViewPendingRequests();
+                        Console.ReadLine();
                         break;
                     // case to Return to Main Menu
                     case '0':
@@ -229,7 +230,20 @@ namespace MiniBankProject
         // View Pending Requests Function 
         public static void ViewPendingRequests()
         {
-
+            //check if tere is any pending requests
+            if (createAccountRequests.Count() == 0)
+            {
+                Console.WriteLine("There is no pending request yet");
+            }
+            else
+            {
+                // display all pending request
+                foreach (string request in createAccountRequests)
+                {
+                    Console.WriteLine(request);
+                    Console.WriteLine("=======================");
+                }
+            }
         }
         // View All Accounts Function 
         public static void ViewAllAccounts()
@@ -256,6 +270,12 @@ namespace MiniBankProject
             // handling error using try-catch
             try
             {
+                // check if there is request
+                if (createAccountRequests.Count == 0)
+                {
+                    Console.WriteLine("No pending account requests.");
+                    return;
+                }
                 // get last element (which it is first element enter) in the queue
                 string request = createAccountRequests.Dequeue();
                 // Split the request string using '|' to separate username and national ID
@@ -299,7 +319,7 @@ namespace MiniBankProject
             {
                 Console.WriteLine("Input is just empty!");
                 IsValid = false;
-                
+  
             }
             else
             {
