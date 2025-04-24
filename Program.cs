@@ -9,10 +9,11 @@ namespace MiniBankProject
 
     {
         // generate ID number for every account 
-        static int AccountIDNumber;
+        static int LastAccountIDNumber = 0;
         // Global lists(parallel)
         static List<int> AccountIDNumbers = new List<int>();
-        static List<string> AccountNames = new List<string>();
+        static List<string> AccountUserNames = new List<string>();
+        static List<string> AccountUserNationalID = new List<string>();
         static List<double> Balances = new List<double>();
 
         //static Queue<(string name, string nationalID)> createAccountRequests = new Queue<(string, string)>();
@@ -237,9 +238,36 @@ namespace MiniBankProject
         // Process Account Request Function 
         public static void ProcessAccountRequest()
         {
-            foreach (string request in createAccountRequests)
+            // handling error using try-catch
+            try
             {
-                string[] SplitRrquest = multiCharString.Split
+                // get last element (which it is first element enter) in the queue
+                string request = createAccountRequests.Dequeue();
+                // Split the request string using '|' to separate username and national ID
+                string[] SplitRrquest = request.Split("|");
+                // Extract and store the username from the request
+                string UserName = SplitRrquest[0];
+                // Extract and store the national ID from the request
+                string UserNationalID = SplitRrquest[1];
+                // Increment the last account ID number for the new account
+                int NewAccountIDNumber = LastAccountIDNumber + 1;
+                // Set initial account balance to 0
+                double balance = 0.0;
+                // Add user name in the AccountUserNames list
+                AccountUserNames.Add(UserName);
+                // Add user national ID in the AccountUserNationalID list
+                AccountUserNationalID.Add(UserNationalID);
+                // Add user Account ID in the AccountIDNumbers list
+                AccountIDNumbers.Add(NewAccountIDNumber);
+                // Add user initial balance in the Balances list
+                Balances.Add(balance);
+                Console.WriteLine($"Account created for {UserName} with Account Number: {NewAccountIDNumber}");
+
+            }
+            catch
+            {
+                //display massage to the user if anyy error happened during running program 
+                Console.WriteLine("Accept process fail, Try Agine!");
             }
             
         }
