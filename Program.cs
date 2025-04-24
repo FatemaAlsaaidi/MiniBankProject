@@ -1,4 +1,5 @@
-﻿using System.Net.Http.Headers;
+﻿using System.Diagnostics.Metrics;
+using System.Net.Http.Headers;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -13,14 +14,17 @@ namespace MiniBankProject
         // Global lists(parallel)
         static List<int> AccountIDNumbers = new List<int>();
 
-        // Account data 
+        // Account data in Lists
         static List<string> AccountUserNames = new List<string>();
         static List<string> AccountUserNationalID = new List<string>();
         static List<double> Balances = new List<double>();
 
+        //Requests in queue
         //static Queue<(string name, string nationalID)> createAccountRequests = new Queue<(string, string)>();
         static Queue<string> createAccountRequests = new Queue<string>(); // format: "Name|NationalID"
 
+        //review in stack
+        static Stack<string> UserReviews = new Stack<string>();
         // ======================================== Menu Functions =================================
         static void Main(string[] args)
         {
@@ -100,7 +104,8 @@ namespace MiniBankProject
                         break;
                     // case to Submit Review/Complaint
                     case '5':
-
+                        SubmitReview();
+                        Console.ReadLine();
                         break;
                     // case to exist from user menu and Return to Main Menu 
                     case '0':
@@ -146,7 +151,8 @@ namespace MiniBankProject
                         break;
                     // case to View Submitted Reviews
                     case '2':
-
+                        ViewReviews();
+                        Console.ReadLine();
                         break;
                     // case to View All Accounts
                     case '3':
@@ -189,7 +195,7 @@ namespace MiniBankProject
                 Console.WriteLine("Enter your National ID: ");
                 string ID = Console.ReadLine();
                 // valid the ID input
-                string ValidID = StringWithNumberValidation(ID);
+                string ValidID = StringOnlyNumberValidation(ID);
 
                 // save user name and id in the single string value 
                 string request = ValidName + '|' + ValidID;
@@ -223,7 +229,30 @@ namespace MiniBankProject
         // Submit Review Function 
         public static void SubmitReview()
         {
-
+            //error handling using try-catch
+            try
+            {
+                // ask user to enter their review
+                Console.WriteLine("Enter Your Review");
+                string review = Console.ReadLine();
+                //check valid the input review 
+                bool ValidReview = StringlettersWithNumbers(review);
+                if(ValidReview == true)
+                {// push review in stack named "UserReviews"
+                    UserReviews.Push(review);
+                    Console.WriteLine("Your Review successfully submited");
+                }
+                else
+                {
+                    Console.WriteLine("Unvalid input review");
+                }
+                
+            }
+            catch
+            {
+                //display massage if review 
+                Console.WriteLine("Failed Submitted, try agine!");
+            }
         }
 
         // ===================== Admin Features Function ==========================
@@ -262,6 +291,19 @@ namespace MiniBankProject
         // View Reviews Function 
         public static void ViewReviews()
         {
+            //error handling using try-catch
+            try
+            {
+                //iteration all users reviews in UserReviews stack 
+                foreach (string Review in UserReviews)
+                {
+                    Console.WriteLine(Review);
+                }
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
 
         }
         // Process Account Request Function 
@@ -348,7 +390,7 @@ namespace MiniBankProject
             return ValidWord;
         }
         // validate numeric strting
-        public static string StringWithNumberValidation(string word)
+        public static string StringOnlyNumberValidation(string word)
         {
             bool IsValid = true;
             string ValidWord = "";
@@ -382,6 +424,25 @@ namespace MiniBankProject
                 Console.WriteLine("word unsaved! try agine");
             }
             return ValidWord;
+        }
+
+        // validate string which letter with number
+        public static bool StringlettersWithNumbers(string word)
+        {
+            bool IsValid = true;
+            string ValidWord = "";
+            if (string.IsNullOrEmpty(word) && word.All(char.IsLetter))
+            {
+                Console.WriteLine("Input is just empty!");
+                IsValid = false;
+
+            }
+            else
+            {
+                IsValid = true;
+            }
+
+            return IsValid;
         }
         // integer validation 
 
