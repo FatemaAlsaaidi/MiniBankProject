@@ -214,6 +214,8 @@ namespace MiniBankProject
         // Deposit Function 
         public static void Deposit()
         {
+            Console.WriteLine("Enter the amount of money you want to deposit: ");
+            string DepositAmount = Console.ReadLine();
 
         }
         // Withdraw Function 
@@ -470,6 +472,12 @@ namespace MiniBankProject
             }
 
             return ValidNumber;
+        }
+
+        // numeric validation 
+        public static bool NumericValid(string num)
+        {
+
         }
     }
 }
