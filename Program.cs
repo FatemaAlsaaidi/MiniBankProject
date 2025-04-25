@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.Metrics;
 using System.Net.Http.Headers;
 using System.Reflection.Metadata.Ecma335;
@@ -12,8 +13,13 @@ namespace MiniBankProject
     internal class Program
 
     {
+        // Constants
+        const double MinimumBalance = 100.0;
+        const string AccountsFilePath = "accounts.txt";
+        const string ReviewsFilePath = "reviews.txt";
         // generate ID number for every account 
         static int LastAccountIDNumber = 0;
+        static int IndexID = 0;
         // Global lists(parallel)
         static List<int> AccountIDNumbers = new List<int>();
 
@@ -95,15 +101,11 @@ namespace MiniBankProject
                         break;
                     // case to Deposit
                     case '2':
-                        // Prompt user to enter their National ID
-                        Console.WriteLine("Enter You National ID: ");
-                        string ID = Console.ReadLine(); // Read user input from console
-                        bool UserExist = UserLogin(ID);
-                        Console.ReadLine();
-                        if(UserExist== true)
+                        IndexID = LoginWithID();
+                        if (IndexID != -1)
                         {
                             Console.WriteLine("Proceeding to deposit...");
-                            Deposit(ID); // If user exists, proceed with deposit
+                            Deposit(IndexID); // If user exists, proceed with deposit
                             Console.ReadLine(); // Wait for user input before continuing
                         }
                         else
@@ -113,11 +115,31 @@ namespace MiniBankProject
                         break;
                     // case to Withdraw
                     case '3':
-
+                        IndexID = LoginWithID();
+                        if (IndexID != -1)
+                        {
+                            Console.WriteLine("Proceeding to deposit...");
+                            withdraw(IndexID); // If user exists, proceed with withdraw
+                            Console.ReadLine(); // Wait for user input before continuing
+                        }
+                        else
+                        {
+                            Console.WriteLine("Login failed. Please check your National ID.");
+                        }
                         break;
                     // case to View Balance
                     case '4':
-
+                        IndexID = LoginWithID();
+                        if (IndexID != -1)
+                        {
+                            Console.WriteLine("Proceeding to deposit...");
+                            CheckBalance(IndexID); // If user exists, proceed with chech balance
+                            Console.ReadLine(); // Wait for user input before continuing
+                        }
+                        else
+                        {
+                            Console.WriteLine("Login failed. Please check your National ID.");
+                        }
                         break;
                     // case to Submit Review/Complaint
                     case '5':
@@ -229,51 +251,105 @@ namespace MiniBankProject
 
         }
         // Deposit Function 
-        public static void Deposit(string ID)
+        public static void Deposit(int IndexID)
         {
+            // Initialize a boolean flag to control the deposit loop.
             bool IsDeposit = false;
+            // Initialize a variable to store the final parsed deposit amount.
             double FinalDepositAmount = 0.0;
-            int IndexID=0;
+            // Initialize an index to find the user's position in the account list.
+
+            // Start a try block to catch potential runtime exceptions.
             try
             {
+                // Repeat until a valid deposit is made.
                 while (IsDeposit == false)
                 {
+                    //IndexID = LoginWithID();
                     Console.WriteLine("Enter the amount of money you want to deposit: ");
                     string DepositAmount = Console.ReadLine();
+                    // Validate the entered amount using a custom method.
                     bool ValidDepositAmount = AmountValid(DepositAmount);
                     if (ValidDepositAmount == false)
                     {
+                        // Display error if the input is not valid.
                         Console.WriteLine("Invalid input");
                         IsDeposit = false;
                     }
+                    // If input is valid, find the user index.
                     else
                     {
-                        for (int i = 0; i < AccountUserNationalID.Count; i++)
-                        {
-                            if (AccountUserNationalID[i] == ID)
-                            {
-                                IndexID = i;
-                            }
-                        }
+                        // convert string to double using TryParse
                         double.TryParse(DepositAmount, out FinalDepositAmount);
 
-                        UserBalances[IndexID] = FinalDepositAmount;
+                        // Update the user's balance by adding the deposit amount.
+                        UserBalances[IndexID] = UserBalances[IndexID]+FinalDepositAmount;
+                        // Set the flag to true to exit the loop.
                         IsDeposit = true;
+                        // Exit the method (if inside a method).
                         return;
 
                     }
                 }
             }
+            //Print any exception message that occurs during execution.
             catch (Exception e) { Console.WriteLine(e.Message); }
 
         }
         // Withdraw Function 
-        public static void withdraw()
+        public static void withdraw(int IndexID)
         {
+            // Initialize a boolean flag to control the deposit loop.
+            bool IsWithdraw = false;
+            // Initialize a variable to store the final parsed deposit amount.
+            double FinalwithdrawAmount = 0.0;
+            // Initialize an index to find the user's position in the account list.
+            
+            // Start a try block to catch potential runtime exceptions.
+            try
+            {
+                // Repeat until a valid deposit is made.
+                while (IsWithdraw == false)
+                {
+                    Console.WriteLine("Enter the amount of money you want to withdrw from your balance: ");
+                    string WithdrawAmount = Console.ReadLine();
+                    // Validate the entered amount using a custom method.
+                    bool ValidWithAmount = AmountValid(WithdrawAmount);
+                    if (ValidWithAmount == false)
+                    {
+                        // Display error if the input is not valid.
+                        Console.WriteLine("Invalid input");
+                        IsWithdraw = false;
+                    }
+                    // If input is valid, find the user index.
+                    else
+                    {
+                        
+                        // convert string to double using TryParse
+                        double.TryParse(WithdrawAmount, out FinalwithdrawAmount);
+                        // check if user balamce is less than or equal MinimumBalance
+                        if (UserBalances[IndexID] <= MinimumBalance)
+                        {
+                            Console.WriteLine("Can not withdraw from your balance, becouse your balance has less than or equal 100.00$");
+                        }
+                        else
+                        {
+                            // Update the user's balance by adding the deposit amount.
+                            UserBalances[IndexID] = UserBalances[IndexID] - FinalwithdrawAmount;
+                            // Set the flag to true to exit the loop.
+                            IsWithdraw = true;
+                            // Exit the method (if inside a method).
+                        }
+                        return;
 
+                    }
+                }
+            }
+            //Print any exception message that occurs during execution.
+            catch (Exception e) { Console.WriteLine(e.Message); }
         }
         // Check Balance Function
-        public static void CheckBalance()
+        public static void CheckBalance(int IndexID)
         {
 
         }
@@ -622,19 +698,38 @@ namespace MiniBankProject
             return false;
         }
 
-        // validate National id exist
-        //public static bool ValidateNationalIDExists(string ID)
-        //{
-        //    bool IsExist = true;
-        //    for (int i = 0; i < AccountUserNationalID.Count; i++)
-        //    {
-        //        if (AccountUserNationalID[i] != ID) 
-        //        { 
-        //            IsExist = false;
-        //        } 
-        //    }
-        //    return IsExist;
-        //}
+        //*************************** Ask to enter ID number *************************
+        //
+
+
+        // get index if id exist
+        public static int LoginWithID()
+        {
+            int IndexId = -1;
+            // Prompt user to enter their National ID
+            Console.WriteLine("Enter You National ID: ");
+            string ID = Console.ReadLine(); // Read user input from console
+            bool UserExist = UserLogin(ID);
+            if (UserExist==true)
+            {
+                //lopp thriugh items in list
+                for (int i = 0; i < AccountUserNationalID.Count; i++)
+                {
+                    //check if Input exist in the list 
+                    if (AccountUserNationalID[i] == ID)
+                    {
+                        // Store the index of the user with the matching ID.
+                        IndexId = i;
+                    }
+                }
+            }
+            else
+            {
+                Console.WriteLine("Your ID number is not exist");
+            }
+            return IndexId;
+        }
+
     }
 
  
