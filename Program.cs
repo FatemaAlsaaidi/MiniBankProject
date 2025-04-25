@@ -351,7 +351,7 @@ namespace MiniBankProject
         // Check Balance Function
         public static void CheckBalance(int IndexID)
         {
-
+            Console.WriteLine($"Your Current Balance is {UserBalances[IndexID]}");
         }
         // Submit Review Function 
         public static void SubmitReview()
