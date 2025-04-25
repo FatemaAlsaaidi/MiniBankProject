@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.Metrics;
 using System.Net.Http.Headers;
+using System.Reflection.Metadata.Ecma335;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -94,7 +95,16 @@ namespace MiniBankProject
                         break;
                     // case to Deposit
                     case '2':
-
+                        
+                        bool UserExist = UserLogin();
+                        if(UserExist == true)
+                        {
+                            Deposit();
+                        }
+                        else
+                        {
+                            Console.WriteLine("please create an account before do this process");
+                        }
                         break;
                     // case to Withdraw
                     case '3':
@@ -268,11 +278,53 @@ namespace MiniBankProject
                 Console.WriteLine("Failed Submitted, try agine!");
             }
         }
-
-        public static void UserLogin()
+        // login user 
+        public static bool UserLogin()
         {
-            Console.WriteLine("Enter You National ID: ");
-            string ID = Console.ReadLine();
+            bool ValidUserLogin = true;
+            // Start of try block to catch any unexpected runtime exceptions
+            try
+            {
+                // Prompt user to enter their National ID
+                Console.WriteLine("Enter You National ID: ");
+                string ID = Console.ReadLine(); // Read user input from console
+                bool ValidID = NationalIDValidation(ID); // Validate the input ID using a validation method
+                if (ValidID == true)  // Proceed only if the ID is valid
+                {
+                    bool userFound = false;
+                    // Loop through the list of registered National IDs
+                    for (int i = 0; i < AccountUserNationalID.Count; i++)
+                    {
+                        // Check if the current ID in the list matches the user's input
+                        if (AccountUserNationalID[i] == ID)
+                        {
+                            userFound = true;  // If match found, set userFound = true
+                            break;
+                        }
+                    }
+                    if (userFound)
+                    {
+                        ValidUserLogin = true;
+                    }
+                    else
+                    {
+                        // If loop completes with no match, show message
+                        Console.WriteLine("User not found. Please check your ID and try again.");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("National ID is invalid! please try agine");
+                    ValidUserLogin = false;
+                }
+
+                return ValidUserLogin;
+            }
+            catch (Exception e) // Catch any exceptions that occur
+            {
+                Console.WriteLine(e.Message); // Print the error message
+                return false;
+            }
 
         }
         
@@ -465,39 +517,32 @@ namespace MiniBankProject
 
             return IsValid;
         }
-        // integer validation 
 
-        public static int NationalIDValidation(string num)
+        //NationalID validation 
+        public static bool NationalIDValidation(string NationalID)
         {
-            int ValidNumber = 0;
-            bool IsValid = true;
-            if (int.TryParse(num, out int result) && num.Length == 8)
+            // Check if the input is not null or empty
+            if (!string.IsNullOrEmpty(NationalID))
             {
-                Console.WriteLine("Valid integer: " + result);
-                IsValid = true;
+                // Check if input is exactly 8 digits and only contains numbers
+                if (NationalID.Length == 8 && NationalID.All(char.IsDigit))
+                {
+                    Console.WriteLine("Valid integer: " + NationalID);
+                    return true;
+                }
+                else
+                {
+                    Console.WriteLine("National ID should be exactly 8 digits and numeric only.");
+                }
             }
             else
             {
-                Console.WriteLine("Invalid integer value.");
-                IsValid = false;
+                Console.WriteLine("Invalid Null integer value");
             }
-            if (IsValid)
-            {
-                ValidNumber = result;
-            }
-            else
-            {
-                Console.WriteLine("ID Number unsaved! try agine");
-            }
-
-            return ValidNumber;
+           
+            return false;
         }
 
-        // numeric validation with intiger value  
-        //public static bool NumericValid(int num)
-        //{
-        //    bool IsValid = true;
-        //}
         // numeric validation with double value
         public static bool AmountValid(string amount)
         {
