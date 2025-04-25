@@ -234,33 +234,37 @@ namespace MiniBankProject
             bool IsDeposit = false;
             double FinalDepositAmount = 0.0;
             int IndexID=0;
-            while (IsDeposit== false)
+            try
             {
-                Console.WriteLine("Enter the amount of money you want to deposit: ");
-                string DepositAmount = Console.ReadLine();
-                bool ValidDepositAmount = AmountValid(DepositAmount);
-                if (ValidDepositAmount == false)
+                while (IsDeposit == false)
                 {
-                    Console.WriteLine("Invalid input");
-                    IsDeposit = false;
-                }
-                else
-                {
-                    for(int i = 0; i < AccountUserNationalID.Count; i++)
+                    Console.WriteLine("Enter the amount of money you want to deposit: ");
+                    string DepositAmount = Console.ReadLine();
+                    bool ValidDepositAmount = AmountValid(DepositAmount);
+                    if (ValidDepositAmount == false)
                     {
-                        if(AccountUserNationalID[i] == ID)
-                        {
-                            IndexID = i;
-                        }
+                        Console.WriteLine("Invalid input");
+                        IsDeposit = false;
                     }
-                    double.TryParse(DepositAmount, out FinalDepositAmount);
+                    else
+                    {
+                        for (int i = 0; i < AccountUserNationalID.Count; i++)
+                        {
+                            if (AccountUserNationalID[i] == ID)
+                            {
+                                IndexID = i;
+                            }
+                        }
+                        double.TryParse(DepositAmount, out FinalDepositAmount);
 
-                    UserBalances[IndexID] = FinalDepositAmount;
-                    IsDeposit = true;
-                    return;
+                        UserBalances[IndexID] = FinalDepositAmount;
+                        IsDeposit = true;
+                        return;
 
+                    }
                 }
             }
+            catch (Exception e) { Console.WriteLine(e.Message); }
 
         }
         // Withdraw Function 
