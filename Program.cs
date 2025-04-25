@@ -20,7 +20,7 @@ namespace MiniBankProject
         // Account data in Lists
         static List<string> AccountUserNames = new List<string>();
         static List<string> AccountUserNationalID = new List<string>();
-        static List<double> Balances = new List<double>();
+        static List<double> UserBalances = new List<double>();
 
         //Requests in queue
         //static Queue<(string name, string nationalID)> createAccountRequests = new Queue<(string, string)>();
@@ -95,15 +95,20 @@ namespace MiniBankProject
                         break;
                     // case to Deposit
                     case '2':
-                        
-                        bool UserExist = UserLogin();
-                        if(UserExist == true)
+                        // Prompt user to enter their National ID
+                        Console.WriteLine("Enter You National ID: ");
+                        string ID = Console.ReadLine(); // Read user input from console
+                        bool UserExist = UserLogin(ID);
+                        Console.ReadLine();
+                        if(UserExist== true)
                         {
-                            Deposit();
+                            Console.WriteLine("Proceeding to deposit...");
+                            Deposit(ID); // If user exists, proceed with deposit
+                            Console.ReadLine(); // Wait for user input before continuing
                         }
                         else
                         {
-                            Console.WriteLine("please create an account before do this process");
+                            Console.WriteLine("Login failed. Please check your National ID.");
                         }
                         break;
                     // case to Withdraw
@@ -224,20 +229,38 @@ namespace MiniBankProject
 
         }
         // Deposit Function 
-        public static void Deposit()
+        public static void Deposit(string ID)
         {
+            bool IsDeposit = false;
+            double FinalDepositAmount = 0.0;
+            int IndexID=0;
+            while (IsDeposit== false)
+            {
+                Console.WriteLine("Enter the amount of money you want to deposit: ");
+                string DepositAmount = Console.ReadLine();
+                bool ValidDepositAmount = AmountValid(DepositAmount);
+                if (ValidDepositAmount == false)
+                {
+                    Console.WriteLine("Invalid input");
+                    IsDeposit = false;
+                }
+                else
+                {
+                    for(int i = 0; i < AccountUserNationalID.Count; i++)
+                    {
+                        if(AccountUserNationalID[i] == ID)
+                        {
+                            IndexID = i;
+                        }
+                    }
+                    double.TryParse(DepositAmount, out FinalDepositAmount);
 
-            //Console.WriteLine("Enter the amount of money you want to deposit: ");
-            //string DepositAmount = Console.ReadLine();
-            //bool ValidDepositAmount = NumericValid(DepositAmount);
-            //if(ValidDepositAmount == false)
-            //{
-            //    Console.WriteLine("Invalid input");
-            //}
-            //else
-            //{
+                    UserBalances[IndexID] = FinalDepositAmount;
+                    IsDeposit = true;
+                    return;
 
-            //}
+                }
+            }
 
         }
         // Withdraw Function 
@@ -279,15 +302,13 @@ namespace MiniBankProject
             }
         }
         // login user 
-        public static bool UserLogin()
+        public static bool UserLogin(string ID)
         {
             bool ValidUserLogin = true;
             // Start of try block to catch any unexpected runtime exceptions
             try
             {
-                // Prompt user to enter their National ID
-                Console.WriteLine("Enter You National ID: ");
-                string ID = Console.ReadLine(); // Read user input from console
+                
                 bool ValidID = NationalIDValidation(ID); // Validate the input ID using a validation method
                 if (ValidID == true)  // Proceed only if the ID is valid
                 {
@@ -304,12 +325,16 @@ namespace MiniBankProject
                     }
                     if (userFound)
                     {
+                        Console.WriteLine("Login successful!");
                         ValidUserLogin = true;
+                        
                     }
                     else
                     {
                         // If loop completes with no match, show message
-                        Console.WriteLine("User not found. Please check your ID and try again.");
+                        Console.WriteLine("User not found. please create an account before do this process");
+                        ValidUserLogin = false;  // User not found, so login fails
+
                     }
                 }
                 else
@@ -318,16 +343,17 @@ namespace MiniBankProject
                     ValidUserLogin = false;
                 }
 
-                return ValidUserLogin;
             }
             catch (Exception e) // Catch any exceptions that occur
             {
                 Console.WriteLine(e.Message); // Print the error message
-                return false;
+                ValidUserLogin = false;
             }
+            //Console.WriteLine($"UserLogin result: {ValidUserLogin}"); // Print the result of UserLogin for debugging
+            return ValidUserLogin;
 
         }
-        
+
         // ===================== Admin Features Function ==========================
         // View Pending Requests Function 
         public static void ViewPendingRequests()
@@ -356,7 +382,7 @@ namespace MiniBankProject
             for (int i = 0; i < AccountUserNationalID.Count; i++)
             {
                 //display list values for every index
-                Console.WriteLine($"{AccountIDNumbers[i]}\t{"|"}{AccountUserNames[i]}\t{"|"}{AccountUserNationalID[i]}\t{"|"}{Balances[i]}");
+                Console.WriteLine($"{AccountIDNumbers[i]}\t{"|"}{AccountUserNames[i]}\t{"|"}{AccountUserNationalID[i]}\t{"|"}{UserBalances[i]}");
 
             }
             
@@ -410,7 +436,7 @@ namespace MiniBankProject
                 // Add user Account ID in the AccountIDNumbers list
                 AccountIDNumbers.Add(NewAccountIDNumber);
                 // Add user initial balance in the Balances list
-                Balances.Add(balance);
+                UserBalances.Add(balance);
                 Console.WriteLine($"Account created for {UserName} with Account Number: {NewAccountIDNumber}");
                 LastAccountIDNumber = NewAccountIDNumber;
 
@@ -518,7 +544,7 @@ namespace MiniBankProject
             return IsValid;
         }
 
-        //NationalID validation 
+        //NationalID validation formate
         public static bool NationalIDValidation(string NationalID)
         {
             // Check if the input is not null or empty
@@ -527,7 +553,7 @@ namespace MiniBankProject
                 // Check if input is exactly 8 digits and only contains numbers
                 if (NationalID.Length == 8 && NationalID.All(char.IsDigit))
                 {
-                    Console.WriteLine("Valid integer: " + NationalID);
+                    //Console.WriteLine("Valid integer: " + NationalID);
                     return true;
                 }
                 else
@@ -593,18 +619,18 @@ namespace MiniBankProject
         }
 
         // validate National id exist
-        public static bool ValidateNationalIDExists(string ID)
-        {
-            bool IsExist = true;
-            for (int i = 0; i < AccountUserNationalID.Count; i++)
-            {
-                if (AccountUserNationalID[i] != ID) 
-                { 
-                    IsExist = false;
-                } 
-            }
-            return IsExist;
-        }
+        //public static bool ValidateNationalIDExists(string ID)
+        //{
+        //    bool IsExist = true;
+        //    for (int i = 0; i < AccountUserNationalID.Count; i++)
+        //    {
+        //        if (AccountUserNationalID[i] != ID) 
+        //        { 
+        //            IsExist = false;
+        //        } 
+        //    }
+        //    return IsExist;
+        //}
     }
 
  
