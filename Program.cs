@@ -1,8 +1,10 @@
-﻿using System.Diagnostics.Metrics;
+﻿using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.Metrics;
 using System.Net.Http.Headers;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace MiniBankProject
 {
@@ -214,8 +216,18 @@ namespace MiniBankProject
         // Deposit Function 
         public static void Deposit()
         {
-            Console.WriteLine("Enter the amount of money you want to deposit: ");
-            string DepositAmount = Console.ReadLine();
+
+            //Console.WriteLine("Enter the amount of money you want to deposit: ");
+            //string DepositAmount = Console.ReadLine();
+            //bool ValidDepositAmount = NumericValid(DepositAmount);
+            //if(ValidDepositAmount == false)
+            //{
+            //    Console.WriteLine("Invalid input");
+            //}
+            //else
+            //{
+
+            //}
 
         }
         // Withdraw Function 
@@ -257,6 +269,13 @@ namespace MiniBankProject
             }
         }
 
+        public static void UserLogin()
+        {
+            Console.WriteLine("Enter You National ID: ");
+            string ID = Console.ReadLine();
+
+        }
+        
         // ===================== Admin Features Function ==========================
         // View Pending Requests Function 
         public static void ViewPendingRequests()
@@ -474,10 +493,74 @@ namespace MiniBankProject
             return ValidNumber;
         }
 
-        // numeric validation 
-        public static bool NumericValid(string num)
+        // numeric validation with intiger value  
+        //public static bool NumericValid(int num)
+        //{
+        //    bool IsValid = true;
+        //}
+        // numeric validation with double value
+        public static bool AmountValid(string amount)
         {
+            // Define a regular expression pattern to match decimal numbers (e.g., 10.5)
+            string pattern = @"^\d+\.\d+$";
+            // Check if the input string is not null or empty
+            if (!string.IsNullOrEmpty(amount))
+            {
+                // Check if the input string matches the decimal format defined by the regex
+                if (Regex.IsMatch(amount, pattern))
+                {
+                    // Try converting the string to a double
+                    if (double.TryParse(amount, out double result))
+                    {
+                        // Check if the parsed number is greater than zero
+                        if (result > 0)
+                        {
+                            // Input is valid, print confirmation and return true
+                            Console.WriteLine("Valid input: " + result);
+                            return true;
 
+                        }
+                        else
+                        {
+                            // Number is less than or equal to zero
+                            Console.WriteLine("Amount must be greater than zero.");
+                        }
+                    }
+                    else
+                    {
+                        // Parsing failed despite matching the regex (edge case)
+                        Console.WriteLine("Invalid format. Please enter a valid number (e.g., 0.0)");
+                    }
+                }
+                else
+                {
+                    // Input doesn't match the required decimal format
+                    Console.WriteLine("Invalid format. Please enter a number with valid formate (0.0)");
+                }
+            }
+            else
+            {
+                // Input is null or empty
+                Console.WriteLine("Invalid null or empty value! Try again.");
+            }
+            // Return false if any validation step fails
+            return false;
+        }
+
+        // validate National id exist
+        public static bool ValidateNationalIDExists(string ID)
+        {
+            bool IsExist = true;
+            for (int i = 0; i < AccountUserNationalID.Count; i++)
+            {
+                if (AccountUserNationalID[i] != ID) 
+                { 
+                    IsExist = false;
+                } 
+            }
+            return IsExist;
         }
     }
+
+ 
 }
