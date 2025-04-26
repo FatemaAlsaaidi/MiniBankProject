@@ -87,11 +87,7 @@ namespace MiniBankProject
                 Console.Clear();
                 Console.WriteLine("\n------ User Menu ------");
                 Console.WriteLine("1. Request Account Creation");
-                Console.WriteLine("2. Deposit");
-                Console.WriteLine("3. Withdraw");
-                Console.WriteLine("4. View Balance");
-                Console.WriteLine("5. Submit Review/Complaint");
-                Console.WriteLine("0. Return to Main Menu");
+                Console.WriteLine("2. Login");
                 Console.Write("Select option: ");
                 char userChoice = Console.ReadKey().KeyChar;
                 Console.WriteLine();
@@ -106,50 +102,18 @@ namespace MiniBankProject
                     // case to Deposit
                     case '2':
                         IndexID = LoginWithID();
+                        Console.ReadLine(); // Wait for user input before continuing
                         if (IndexID != -1)
                         {
-                            Console.WriteLine("Proceeding to deposit...");
-                            Deposit(IndexID); // If user exists, proceed with deposit
-                            Console.ReadLine(); // Wait for user input before continuing
+                            UserMenuOperations(IndexID);
+                            Console.ReadLine();
                         }
                         else
                         {
                             Console.WriteLine("Login failed. Please check your National ID.");
                         }
                         break;
-                    // case to Withdraw
-                    case '3':
-                        IndexID = LoginWithID();
-                        if (IndexID != -1)
-                        {
-                            Console.WriteLine("Proceeding to deposit...");
-                            withdraw(IndexID); // If user exists, proceed with withdraw
-                            Console.ReadLine(); // Wait for user input before continuing
-                        }
-                        else
-                        {
-                            Console.WriteLine("Login failed. Please check your National ID.");
-                        }
-                        break;
-                    // case to View Balance
-                    case '4':
-                        IndexID = LoginWithID();
-                        if (IndexID != -1)
-                        {
-                            Console.WriteLine("Proceeding to deposit...");
-                            CheckBalance(IndexID); // If user exists, proceed with chech balance
-                            Console.ReadLine(); // Wait for user input before continuing
-                        }
-                        else
-                        {
-                            Console.WriteLine("Your ID number is not exist, please check your ID nuber or create an account");
-                        }
-                        break;
-                    // case to Submit Review/Complaint
-                    case '5':
-                        SubmitReview();
-                        Console.ReadLine();
-                        break;
+
                     // case to exist from user menu and Return to Main Menu 
                     case '0':
                         inUserMenu = false; // this will exit the loop and return
@@ -307,9 +271,71 @@ namespace MiniBankProject
             }
 
         }
+        // User Menu Operation
+        public static void UserMenuOperations(int IndexID)
+        {
+            bool inUserMenu = true;
+            // while loop to display the mnue ewhile the flag is true 
+            while (inUserMenu)
+            {
+                Console.Clear();
+                Console.WriteLine("\n------ User Menu Operation ------");
+                Console.WriteLine("1. Deposit");
+                Console.WriteLine("2. Withdraw");
+                Console.WriteLine("3. View Balance");
+                Console.WriteLine("4. Submit Review/Complaint");
+                Console.WriteLine("0. Return to Main Menu");
+                Console.Write("Select option: ");
+                char userChoice = Console.ReadKey().KeyChar;
+                Console.WriteLine();
+
+                switch (userChoice)
+                {                    
+                    // case to Deposit
+                    case '1':
+                        
+                        Console.WriteLine("Proceeding to deposit...");
+                        Deposit(IndexID); // If user exists, proceed with deposit
+                        Console.ReadLine(); // Wait for user input before continuing
+                      
+                        break;
+                    // case to Withdraw
+                    case '2':
+                        
+                        Console.WriteLine("Proceeding to withdraw...");
+                        withdraw(IndexID); // If user exists, proceed with withdraw
+                        Console.ReadLine(); // Wait for user input before continuing
+                       
+                        break;
+                    // case to View Balance
+                    case '3':
+
+                        Console.WriteLine("Proceeding to Check Balance...");
+                        CheckBalance(IndexID); // If user exists, proceed with chech balance
+                        Console.ReadLine(); // Wait for user input before continuing
+                       
+                        break;
+                    // case to Submit Review/Complaint
+                    case '4':
+                        SubmitReview();
+                        Console.ReadLine();
+                        break;
+                    // case to exist from user menu and Return to Main Menu 
+                    case '0':
+                        inUserMenu = false; // this will exit the loop and return
+                        break;
+                    // default case if user choice the wronge number within the range of cases 
+                    default:
+                        Console.WriteLine("Wronge Choice number, Try Agine!");
+                        Console.ReadKey();
+                        break;
+                }
+            }
+        }
         // Deposit Function 
         public static void Deposit(int IndexID)
         {
+            int tries = 0;
             // Initialize a boolean flag to control the deposit loop.
             bool IsDeposit = false;
             // Initialize a variable to store the final parsed deposit amount.
@@ -320,7 +346,7 @@ namespace MiniBankProject
             try
             {
                 // Repeat until a valid deposit is made.
-                while (IsDeposit == false)
+                do
                 {
                     //IndexID = LoginWithID();
                     Console.WriteLine("Enter the amount of money you want to deposit: ");
@@ -332,6 +358,7 @@ namespace MiniBankProject
                         // Display error if the input is not valid.
                         Console.WriteLine("Invalid input");
                         IsDeposit = false;
+                        tries++;
                     }
                     // If input is valid, find the user index.
                     else
@@ -340,14 +367,19 @@ namespace MiniBankProject
                         double.TryParse(DepositAmount, out FinalDepositAmount);
 
                         // Update the user's balance by adding the deposit amount.
-                        UserBalances[IndexID] = UserBalances[IndexID]+FinalDepositAmount;
+                        UserBalances[IndexID] = UserBalances[IndexID] + FinalDepositAmount;
                         // Set the flag to true to exit the loop.
                         IsDeposit = true;
                         // Exit the method (if inside a method).
                         return;
 
                     }
-                }
+                    if (tries == 3)
+                    {
+                        Console.WriteLine("You have exceeded the number of times you are allowed to enter a valid value.");
+                        return;
+                    }
+                } while (IsDeposit == false && tries < 3);
             }
             //Print any exception message that occurs during execution.
             catch (Exception e) { Console.WriteLine(e.Message); }
@@ -356,6 +388,7 @@ namespace MiniBankProject
         // Withdraw Function 
         public static void withdraw(int IndexID)
         {
+            int tries = 0;
             // Initialize a boolean flag to control the deposit loop.
             bool IsWithdraw = false;
             // Initialize a variable to store the final parsed deposit amount.
@@ -366,7 +399,7 @@ namespace MiniBankProject
             try
             {
                 // Repeat until a valid deposit is made.
-                while (IsWithdraw == false)
+                do
                 {
                     Console.WriteLine("Enter the amount of money you want to withdrw from your balance: ");
                     string WithdrawAmount = Console.ReadLine();
@@ -377,11 +410,12 @@ namespace MiniBankProject
                         // Display error if the input is not valid.
                         Console.WriteLine("Invalid input");
                         IsWithdraw = false;
+                        tries++;
                     }
                     // If input is valid, find the user index.
                     else
                     {
-                        
+
                         // convert string to double using TryParse
                         double.TryParse(WithdrawAmount, out FinalwithdrawAmount);
                         // check if user balamce is less than or equal MinimumBalance
@@ -400,7 +434,12 @@ namespace MiniBankProject
                         return;
 
                     }
-                }
+                    if (tries == 3)
+                    {
+                        Console.WriteLine("You have exceeded the number of times you are allowed to enter a valid value.");
+                        return;
+                    }
+                } while (IsWithdraw == false && tries<3);
             }
             //Print any exception message that occurs during execution.
             catch (Exception e) { Console.WriteLine(e.Message); }
@@ -656,21 +695,18 @@ namespace MiniBankProject
                     }
                     else
                     {
-                        Console.WriteLine("National ID should be exactly 8 digits and numeric only.");
                         IsValid = false;
                     }
 
                 }
                 else
                 {
-                    Console.WriteLine("Invalid: contains non-numeric characters.");
                     IsValid = false;
                 }
                
             }
             else
             {
-                Console.WriteLine("Invalid Null integer value");
                 IsValid = false;
             }
 
@@ -827,7 +863,7 @@ namespace MiniBankProject
                         // Add the account username to the list
                         AccountUserNames.Add(parts[1]);
                         // Add the account user national ID to the list
-                        AccountUserNationalID[accNum] = parts[2];
+                        AccountUserNationalID.Add(parts[2]);
                         // Convert the balance to double and add it to the list
                         UserBalances.Add(Convert.ToDouble(parts[3]));
                         // Update the last account number if this one is bigger
@@ -837,11 +873,13 @@ namespace MiniBankProject
                 }
                 // Inform the user that accounts have been loaded successfully
                 Console.WriteLine("Accounts loaded successfully.");
+                Console.ReadLine();
             }
             catch// If any error happens
             {
                 // Inform the user that there was an error loading the file
                 Console.WriteLine("Error loading file.");
+                Console.ReadLine();
             }
 
         }
