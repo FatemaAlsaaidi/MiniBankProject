@@ -516,57 +516,44 @@ namespace MiniBankProject
             }
         }
         // login user 
-        public static bool UserLogin(string ID)
+        public static int UserLoginWithID()
         {
-            bool ValidUserLogin = true;
-            // Start of try block to catch any unexpected runtime exceptions
-            try
+            int tries = 0;
+            int IndexId = -1;
+            bool UserExist = false;
+            string ID = "";
+            do
             {
-                
-                bool ValidID = IDValidation(ID); // Validate the input ID using a validation method
-                if (ValidID == true)  // Proceed only if the ID is valid
+                // Prompt user to enter their National ID
+                Console.WriteLine("Enter You National ID: ");
+                ID = Console.ReadLine(); // Read user input from console                           
+                // valid user exist
+                UserExist = UserLogin(ID);
+                if(UserExist == false)
                 {
-                    bool userFound = false;
-                    // Loop through the list of registered National IDs
-                    for (int i = 0; i < AccountUserNationalID.Count; i++)
+                    tries++;
+                }
+                if (tries == 3)
+                {
+                    Console.WriteLine("You have exceeded the number of times you are allowed to enter a valid ID.");
+                    break;
+                }
+            } while (UserExist == false && tries <3);
+            if (UserExist == true)
+            {
+                //lopp thriugh items in list
+                for (int i = 0; i < AccountUserNationalID.Count; i++)
+                {
+                    //check if Input exist in the list 
+                    if (AccountUserNationalID[i] == ID)
                     {
-                        // Check if the current ID in the list matches the user's input
-                        if (AccountUserNationalID[i] == ID)
-                        {
-                            userFound = true;  // If match found, set userFound = true
-                            break;
-                        }
-                    }
-                    if (userFound)
-                    {
-                        Console.WriteLine("User Login successful!");
-                        ValidUserLogin = true;
-                        
-                    }
-                    else
-                    {
-                        // If loop completes with no match, show message
-                        Console.WriteLine("User not found. please create an account before do this process");
-                        ValidUserLogin = false;  // User not found, so login fails
-
+                        // Store the index of the user with the matching ID.
+                        IndexId = i;
                     }
                 }
-                else
-                {
-                    Console.WriteLine("National ID is invalid! please try agine"); 
-                    Console.WriteLine("National ID should be exactly 8 digits and numeric only.");
-                    ValidUserLogin = false;
-                }
-
             }
-            catch (Exception e) // Catch any exceptions that occur
-            {
-                Console.WriteLine(e.Message); // Print the error message
-                ValidUserLogin = false;
-            }
-            //Console.WriteLine($"UserLogin result: {ValidUserLogin}"); // Print the result of UserLogin for debugging
-            return ValidUserLogin;
-
+           
+            return IndexId;
         }
 
         // ===================== Admin Features Function ==========================
@@ -730,57 +717,43 @@ namespace MiniBankProject
 
         }
         // login Admin 
-        public static bool AdminLogin(string ID)
+        public static int AdminLoginWithID()
         {
-            bool ValidUserLogin = true;
-            // Start of try block to catch any unexpected runtime exceptions
-            try
+            int tries = 0;
+            int IndexId = -1;
+            bool AdminExist = false;
+            string ID = "";
+            do
             {
-
-                bool ValidID = IDValidation(ID); // Validate the input ID using a validation method
-                if (ValidID == true)  // Proceed only if the ID is valid
+                // Prompt user to enter their National ID
+                Console.WriteLine("Enter You National ID: ");
+                ID = Console.ReadLine(); // Read user input from console
+                AdminExist = AdminLogin(ID);
+                if(AdminExist == false)
                 {
-                    bool userFound = false;
-                    // Loop through the list of registered National IDs
-                    for (int i = 0; i < AdminID.Count; i++)
+                    tries++;
+                }
+                if (tries == 3)
+                {
+                    Console.WriteLine("You have exceeded the number of times you are allowed to enter a valid ID.");
+                    break;
+                }
+            } while (AdminExist == false && tries <3);
+            if (AdminExist == true)
+            {
+                //lopp thriugh items in list
+                for (int i = 0; i < AdminID.Count; i++)
+                {
+                    //check if Input exist in the list 
+                    if (AdminID[i] == ID)
                     {
-                        // Check if the current ID in the list matches the user's input
-                        if (AdminID[i] == ID)
-                        {
-                            userFound = true;  // If match found, set userFound = true
-                            break;
-                        }
-                    }
-                    if (userFound)
-                    {
-                        Console.WriteLine("Admin Login successful!");
-                        ValidUserLogin = true;
-
-                    }
-                    else
-                    {
-                        // If loop completes with no match, show message
-                        Console.WriteLine("User not found. please create an account before do this process");
-                        ValidUserLogin = false;  // User not found, so login fails
-
+                        // Store the index of the user with the matching ID.
+                        IndexId = i;
                     }
                 }
-                else
-                {
-                    Console.WriteLine("National ID is invalid! please try agine");
-                    Console.WriteLine("National ID should be exactly 8 digits and numeric only.");
-                    ValidUserLogin = false;
-                }
-
             }
-            catch (Exception e) // Catch any exceptions that occur
-            {
-                Console.WriteLine(e.Message); // Print the error message
-                ValidUserLogin = false;
-            }
-            //Console.WriteLine($"UserLogin result: {ValidUserLogin}"); // Print the result of UserLogin for debugging
-            return ValidUserLogin;
 
+            return IndexId;
         }
         // View Pending Requests Function 
         public static void ViewPendingRequests()
@@ -1015,58 +988,116 @@ namespace MiniBankProject
 
         //*************************** Ask to enter ID number *************************
 
-        // valid user register with id before get index if id exist 
-        public static int UserLoginWithID()
+        // valid user id
+        public static bool UserLogin(string ID)
         {
-            int IndexId = -1;
-            // Prompt user to enter their National ID
-            Console.WriteLine("Enter You National ID: ");
-            string ID = Console.ReadLine(); // Read user input from console
-            bool UserExist = UserLogin(ID);
-            if (UserExist==true)
+            bool ValidUserLogin = true;
+            // Start of try block to catch any unexpected runtime exceptions
+            try
             {
-                //lopp thriugh items in list
-                for (int i = 0; i < AccountUserNationalID.Count; i++)
+
+                bool ValidID = IDValidation(ID); // Validate the input ID using a validation method
+                if (ValidID == true)  // Proceed only if the ID is valid
                 {
-                    //check if Input exist in the list 
-                    if (AccountUserNationalID[i] == ID)
+                    bool userFound = false;
+                    // Loop through the list of registered National IDs
+                    for (int i = 0; i < AccountUserNationalID.Count; i++)
                     {
-                        // Store the index of the user with the matching ID.
-                        IndexId = i;
+                        // Check if the current ID in the list matches the user's input
+                        if (AccountUserNationalID[i] == ID)
+                        {
+                            userFound = true;  // If match found, set userFound = true
+                            break;
+                        }
+                    }
+                    if (userFound)
+                    {
+                        Console.WriteLine("User Login successful!");
+                        ValidUserLogin = true;
+
+                    }
+                    else
+                    {
+                        // If loop completes with no match, show message
+                        Console.WriteLine("User not found. please create an account before do this process");
+                        ValidUserLogin = false;  // User not found, so login fails
+
                     }
                 }
+                else
+                {
+                    Console.WriteLine("National ID is invalid! please try agine");
+                    Console.WriteLine("National ID should be exactly 8 digits and numeric only.");
+                    ValidUserLogin = false;
+                }
+
             }
-            //else
-            //{
-            //    Console.WriteLine("Your ID number is not exist, please check your ID nuber or create an account");
-            //}
-            return IndexId;
+            catch (Exception e) // Catch any exceptions that occur
+            {
+                Console.WriteLine(e.Message); // Print the error message
+                ValidUserLogin = false;
+            }
+            //Console.WriteLine($"UserLogin result: {ValidUserLogin}"); // Print the result of UserLogin for debugging
+            return ValidUserLogin;
+
         }
 
-        // valid Admin register with id before get index if id exist 
-        public static int AdminLoginWithID()
+
+        // valid Admin exist 
+        public static bool AdminLogin(string ID)
         {
-            int IndexId = -1;
-            // Prompt user to enter their National ID
-            Console.WriteLine("Enter You National ID: ");
-            string ID = Console.ReadLine(); // Read user input from console
-            bool AdminExist = AdminLogin(ID);
-            if (AdminExist == true)
+            bool ValidUserLogin = true;
+            // Start of try block to catch any unexpected runtime exceptions
+            try
             {
-                //lopp thriugh items in list
-                for (int i = 0; i < AdminID.Count; i++)
+
+                bool ValidID = IDValidation(ID); // Validate the input ID using a validation method
+                if (ValidID == true)  // Proceed only if the ID is valid
                 {
-                    //check if Input exist in the list 
-                    if (AdminID[i] == ID)
+                    bool userFound = false;
+                    // Loop through the list of registered National IDs
+                    for (int i = 0; i < AdminID.Count; i++)
                     {
-                        // Store the index of the user with the matching ID.
-                        IndexId = i;
+                        // Check if the current ID in the list matches the user's input
+                        if (AdminID[i] == ID)
+                        {
+                            userFound = true;  // If match found, set userFound = true
+                            break;
+                        }
+                    }
+                    if (userFound)
+                    {
+                        Console.WriteLine("Admin Login successful!");
+                        ValidUserLogin = true;
+
+                    }
+                    else
+                    {
+                        // If loop completes with no match, show message
+                        Console.WriteLine("User not found. please create an account before do this process");
+                        ValidUserLogin = false;  // User not found, so login fails
+
                     }
                 }
+                else
+                {
+                    Console.WriteLine("National ID is invalid! please try agine");
+                    Console.WriteLine("National ID should be exactly 8 digits and numeric only.");
+                    ValidUserLogin = false;
+                }
+
             }
-                            
-            return IndexId;
+            catch (Exception e) // Catch any exceptions that occur
+            {
+                Console.WriteLine(e.Message); // Print the error message
+                ValidUserLogin = false;
+            }
+            //Console.WriteLine($"UserLogin result: {ValidUserLogin}"); // Print the result of UserLogin for debugging
+            return ValidUserLogin;
+
         }
+
+        
         // ************************* saved files and loaded them ****************************
         //1. save and load Account information
 
