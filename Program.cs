@@ -18,10 +18,10 @@ namespace MiniBankProject
         const string AccountsFilePath = "accounts.txt";
         const string ReviewsFilePath = "reviews.txt";
         // generate ID number for every account 
-        static int LastAccountIDNumber = 0;
+        static int LastAccountNumber = 0;
         static int IndexID = 0;
         // Global lists(parallel)
-        static List<int> AccountIDNumbers = new List<int>();
+        static List<int> AccountNumbers = new List<int>();
 
         // Account data in Lists
         static List<string> AccountUserNames = new List<string>();
@@ -33,10 +33,12 @@ namespace MiniBankProject
         static Queue<string> createAccountRequests = new Queue<string>(); // format: "Name|NationalID"
 
         //review in stack
-        static Stack<string> UserReviews = new Stack<string>();
+        static Stack<string> UserReviewsStack = new Stack<string>();
         // ======================================== Menu Functions =================================
         static void Main(string[] args)
         {
+            LoadAccountsInformationFromFile();
+            LoadReviews();
             bool UsersSystemMenu = true;
             // while loop to display the mnue ewhile the flag is true
             while (UsersSystemMenu)
@@ -62,6 +64,8 @@ namespace MiniBankProject
                         break;
                     // case to Exist from whole system
                     case '0':
+                        SaveAccountsInformationToFile();
+                        SaveReviews();
                         UsersSystemMenu = false;
                         break;
                     // by default case to display error choic message 
@@ -366,7 +370,7 @@ namespace MiniBankProject
                 bool ValidReview = StringlettersWithNumbers(review);
                 if(ValidReview == true)
                 {// push review in stack named "UserReviews"
-                    UserReviews.Push(review);
+                    UserReviewsStack.Push(review);
                     Console.WriteLine("Your Review successfully submited");
                 }
                 else
@@ -462,7 +466,7 @@ namespace MiniBankProject
             for (int i = 0; i < AccountUserNationalID.Count; i++)
             {
                 //display list values for every index
-                Console.WriteLine($"{AccountIDNumbers[i]}\t{"|"}{AccountUserNames[i]}\t{"|"}{AccountUserNationalID[i]}\t{"|"}{UserBalances[i]}");
+                Console.WriteLine($"{AccountNumbers[i]}\t{"|"}{AccountUserNames[i]}\t{"|"}{AccountUserNationalID[i]}\t{"|"}{UserBalances[i]}");
 
             }
             
@@ -474,7 +478,7 @@ namespace MiniBankProject
             try
             {
                 //iteration all users reviews in UserReviews stack 
-                foreach (string Review in UserReviews)
+                foreach (string Review in UserReviewsStack)
                 {
                     Console.WriteLine(Review);
                 }
@@ -506,7 +510,7 @@ namespace MiniBankProject
                 // Extract and store the national ID from the request
                 string UserNationalID = SplitRrquest[1];
                 // Increment the last account ID number for the new account
-                int NewAccountIDNumber = LastAccountIDNumber + 1;
+                int NewAccountIDNumber = LastAccountNumber + 1;
                 // Set initial account balance to 0
                 double balance = 0.0;
                 // Add user name in the AccountUserNames list
@@ -514,11 +518,11 @@ namespace MiniBankProject
                 // Add user national ID in the AccountUserNationalID list
                 AccountUserNationalID.Add(UserNationalID);
                 // Add user Account ID in the AccountIDNumbers list
-                AccountIDNumbers.Add(NewAccountIDNumber);
+                AccountNumbers.Add(NewAccountIDNumber);
                 // Add user initial balance in the Balances list
                 UserBalances.Add(balance);
                 Console.WriteLine($"Account created for {UserName} with Account Number: {NewAccountIDNumber}");
-                LastAccountIDNumber = NewAccountIDNumber;
+                LastAccountNumber = NewAccountIDNumber;
 
 
             }
@@ -730,7 +734,147 @@ namespace MiniBankProject
             return IndexId;
         }
 
+        // ************************* saved files and loaded them ****************************
+        //1. save and load Account information
+
+        // Define a static method to save account information to a file
+        public static void SaveAccountsInformationToFile()
+        {
+            try // Try to execute the code inside the block
+            {
+                // Open the file for writing 
+                using (StreamWriter writer = new StreamWriter(AccountsFilePath))
+                {
+                    // Loop through all accounts by index
+                    for (int i = 0; i < AccountNumbers.Count; i++)
+                    {
+                        // Create a line of data combining account info separated by commas
+                        string dataLine = $"{AccountNumbers[i]},{AccountUserNames[i]},{AccountUserNationalID[i]},{UserBalances[i]}";
+                        // Write the data line into the file
+                        writer.WriteLine(dataLine);
+                    }
+                }
+                // Inform the user that accounts were saved successfully
+                Console.WriteLine("Accounts saved successfully.");
+            }
+            catch // If any error occurs during saving
+            {
+                // Inform the user that there was an error saving the file
+                Console.WriteLine("Error saving file.");
+            }
+        }
+        // Define a static method that loads account information from a file
+        public static void LoadAccountsInformationFromFile()
+        {
+            try  // Try to execute the code inside the block
+            {
+                // Check if the accounts file does not exist
+                if (!File.Exists(AccountsFilePath))
+                {
+                    // Inform the user that no data was found
+                    Console.WriteLine("No saved data found.");
+                    // Exit the method early
+                    return;
+                }
+                // Clear the list of account numbers
+                AccountNumbers.Clear();
+                // Clear the list of account usernames
+                AccountUserNames.Clear();
+                // Clear the list of account usernames
+                AccountUserNationalID.Clear();
+                // Clear the list of user balances
+                UserBalances.Clear();
+                // Clear the list of transactions
+                //transactions.Clear();
+
+                // Open the file for reading using StreamReader
+                using (StreamReader reader = new StreamReader(AccountsFilePath))
+                {
+                    string line; // Declare a variable to hold each line
+                    // Read each line until the end of the file
+                    while ((line = reader.ReadLine()) != null)
+                    {
+                        // Split the line into parts separated by commas
+                        string[] parts = line.Split(',');
+                        // Convert the first part to an integer
+                        int accNum = Convert.ToInt32(parts[0]);
+                        // Add the account number to the list
+                        AccountNumbers.Add(accNum);
+                        // Add the account username to the list
+                        AccountUserNames.Add(parts[1]);
+                        // Add the account user national ID to the list
+                        AccountUserNationalID[accNum] = parts[2];
+                        // Convert the balance to double and add it to the list
+                        UserBalances.Add(Convert.ToDouble(parts[3]));
+                        // Update the last account number if this one is bigger
+                        if (accNum > LastAccountNumber)
+                            LastAccountNumber = accNum;
+                    }
+                }
+                // Inform the user that accounts have been loaded successfully
+                Console.WriteLine("Accounts loaded successfully.");
+            }
+            catch// If any error happens
+            {
+                // Inform the user that there was an error loading the file
+                Console.WriteLine("Error loading file.");
+            }
+
+        }
+
+        // 2. save and load reviews 
+        // Define a static method to save user reviews to a file 
+        public static void SaveReviews()
+        {
+            try // Try to execute the code inside the block
+            {
+                // Open the file for writing 
+                using (StreamWriter writer = new StreamWriter(ReviewsFilePath))
+                {
+                    // Loop through all reviews
+                    foreach (var review in UserReviewsStack)
+                    {
+                        // Write the review line into the file
+                        writer.WriteLine(review);
+                    }
+                }
+            }
+            catch // // If any error occurs during saving
+            {
+                // Inform the user that there was an error saving the file
+                Console.WriteLine("Error saving reviews.");
+            }
+        }
+        // Define a static method to load user reviews to a file 
+        public static void LoadReviews()
+        {
+            try // Try to execute the code inside the block
+            {
+                // Check if the accounts file does not exist
+                if (!File.Exists(ReviewsFilePath)) return;
+                // Open the file for reading using StreamReader
+                using (StreamReader reader = new StreamReader(ReviewsFilePath))
+                {
+                    // declare line variable to hold every line 
+                    string line;
+                    // Read each line until the end of the file
+                    while ((line = reader.ReadLine()) != null)
+                    {
+                        // load the value of line in  UserReviewsStack
+                        UserReviewsStack.Push(line);
+                    }
+                }
+            }
+            catch // If any error happens
+            {
+                // Inform the user that there was an error loading the file
+                Console.WriteLine("Error loading reviews.");
+            }
+        }
+
+
+
     }
 
- 
+
 }
