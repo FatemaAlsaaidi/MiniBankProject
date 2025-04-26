@@ -231,6 +231,7 @@ namespace MiniBankProject
             string UserID = "";
             bool ValidID = true;
             bool IsSave = true;
+            int tries = 0;
             // Error handling 
             try
             {
@@ -250,9 +251,16 @@ namespace MiniBankProject
                     else
                     {
                         IsSave = false;
+                        tries++;
                     }
-                   
-                } while (ValidName == false);
+                    if (tries == 3)
+                    {
+                        Console.WriteLine("You have exceeded the number of times you are allowed to enter a valid value.");
+                        return;
+                    }
+                } while (ValidName == false && tries <3);
+                
+                tries = 0;
                 do
                 {
                     // ask user to enter his national ID 
@@ -268,9 +276,15 @@ namespace MiniBankProject
                     else
                     {
                         IsSave = false;
+                        tries++;
                     }
-                    } while (ValidID == false);
-
+                    if (tries == 3)
+                    {
+                        Console.WriteLine("You have exceeded the number of times you are allowed to enter a valid value.");
+                        return;
+                    }
+                } while (ValidID == false && tries < 3);
+                tries = 0;
                 if (IsSave == true)
                 {
                     // save user name and id in the single string value 
@@ -279,6 +293,10 @@ namespace MiniBankProject
                     createAccountRequests.Enqueue(request);
                     // display message submit successfully 
                     Console.WriteLine("Request Account Creation successfully submit");
+                }
+                else
+                {
+                    return;
                 }
                 
             }
