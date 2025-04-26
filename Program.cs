@@ -142,7 +142,7 @@ namespace MiniBankProject
                         }
                         else
                         {
-                            Console.WriteLine("Login failed. Please check your National ID.");
+                            Console.WriteLine("Your ID number is not exist, please check your ID nuber or create an account");
                         }
                         break;
                     // case to Submit Review/Complaint
@@ -226,26 +226,61 @@ namespace MiniBankProject
         // Request Account Creation fiunction
         public static void RequestAccountCreation()
         {
+            string UserName = "";
+            bool ValidName = true;
+            string UserID = "";
+            bool ValidID = true;
+            bool IsSave = true;
             // Error handling 
             try
             {
-                // ask user to enter his name
-                Console.WriteLine("Enter Your Name: ");
-                string name = Console.ReadLine();
-                // valid the name input 
-                string ValidName = stringOnlyLetterValidation(name);
-                // ask user to enter his national ID 
-                Console.WriteLine("Enter your National ID: ");
-                string ID = Console.ReadLine();
-                // valid the ID input
-                string ValidID = StringOnlyNumberValidation(ID);
+                // Enter User Name Process
+                do
+                {
+                    // ask user to enter his name
+                    Console.WriteLine("Enter Your Name: ");
+                    string name = Console.ReadLine();
+                    // valid the name input 
+                    ValidName = stringOnlyLetterValidation(name);
+                    if(ValidName== true)
+                    {
+                        UserName = name;
+                        IsSave = true;
+                    }
+                    else
+                    {
+                        IsSave = false;
+                    }
+                   
+                } while (ValidName == false);
+                do
+                {
+                    // ask user to enter his national ID 
+                    Console.WriteLine("Enter your National ID: ");
+                    string ID = Console.ReadLine();
+                    // valid the ID input
+                    ValidID = NationalIDValidation(ID);
+                    if (ValidID == true)
+                    {
+                        UserID = ID;
+                        IsSave = true;
+                    }
+                    else
+                    {
+                        IsSave = false;
+                    }
+                    } while (ValidID == false);
 
-                // save user name and id in the single string value 
-                string request = ValidName + '|' + ValidID;
-                // add into createAccountRequests queue 
-                createAccountRequests.Enqueue(request);
-                // display message submit successfully 
-                Console.WriteLine("Request Account Creation successfully submit");
+                if (IsSave == true)
+                {
+                    // save user name and id in the single string value 
+                    string request = UserName + '|' + UserID;
+                    // add into createAccountRequests queue 
+                    createAccountRequests.Enqueue(request);
+                    // display message submit successfully 
+                    Console.WriteLine("Request Account Creation successfully submit");
+                }
+                
             }
             catch
             {
@@ -423,7 +458,8 @@ namespace MiniBankProject
                 }
                 else
                 {
-                    Console.WriteLine("National ID is invalid! please try agine");
+                    Console.WriteLine("National ID is invalid! please try agine"); 
+                    Console.WriteLine("National ID should be exactly 8 digits and numeric only.");
                     ValidUserLogin = false;
                 }
 
@@ -536,7 +572,7 @@ namespace MiniBankProject
 
         // ************************************************* Validation **********************************************
         // string validation 
-        public static string stringOnlyLetterValidation(string word)
+        public static bool stringOnlyLetterValidation(string word)
         {
             bool IsValid = true;
             string ValidWord="";
@@ -562,51 +598,7 @@ namespace MiniBankProject
                 IsValid = false;
             }
 
-            if (IsValid)
-            {
-                ValidWord = word;
-            }
-            else
-            {
-                Console.WriteLine("word unsaved");            
-            }
-            return ValidWord;
-        }
-        // validate numeric strting
-        public static string StringOnlyNumberValidation(string word)
-        {
-            bool IsValid = true;
-            string ValidWord = "";
-            if (string.IsNullOrWhiteSpace(word))
-            {
-                Console.WriteLine("Input is just spaces or empty!");
-                IsValid = false;
-
-            }
-            else
-            {
-                IsValid = true;
-            }
-            if (Regex.IsMatch(word, @"^\d+$"))
-            {
-                Console.WriteLine("Valid: only numbers.");
-                IsValid = true;
-
-            }
-            else
-            {
-                Console.WriteLine("Invalid: contains non-numeric characters.");
-                IsValid = false;
-            }
-            if (IsValid)
-            {
-                ValidWord = word;
-            }
-            else
-            {
-                Console.WriteLine("word unsaved! try agine");
-            }
-            return ValidWord;
+            return IsValid;
         }
 
         // validate string which letter with number
@@ -631,26 +623,40 @@ namespace MiniBankProject
         //NationalID validation formate
         public static bool NationalIDValidation(string NationalID)
         {
+            bool IsValid = true;
             // Check if the input is not null or empty
-            if (!string.IsNullOrEmpty(NationalID))
+            if (!string.IsNullOrWhiteSpace(NationalID))
             {
-                // Check if input is exactly 8 digits and only contains numbers
-                if (NationalID.Length == 8 && NationalID.All(char.IsDigit))
+               
+                if (Regex.IsMatch(NationalID, @"^\d+$"))
                 {
-                    //Console.WriteLine("Valid integer: " + NationalID);
-                    return true;
+                    // Check if input is exactly 8 digits and only contains numbers
+                    if (NationalID.Length == 8 && NationalID.All(char.IsDigit))
+                    {
+                        Console.WriteLine("your National ID : " + NationalID);
+                        IsValid = true;
+                    }
+                    else
+                    {
+                        Console.WriteLine("National ID should be exactly 8 digits and numeric only.");
+                        IsValid = false;
+                    }
+
                 }
                 else
                 {
-                    Console.WriteLine("National ID should be exactly 8 digits and numeric only.");
+                    Console.WriteLine("Invalid: contains non-numeric characters.");
+                    IsValid = false;
                 }
+               
             }
             else
             {
                 Console.WriteLine("Invalid Null integer value");
+                IsValid = false;
             }
-           
-            return false;
+
+            return IsValid;
         }
 
         // numeric validation with double value
@@ -727,10 +733,10 @@ namespace MiniBankProject
                     }
                 }
             }
-            else
-            {
-                Console.WriteLine("Your ID number is not exist");
-            }
+            //else
+            //{
+            //    Console.WriteLine("Your ID number is not exist, please check your ID nuber or create an account");
+            //}
             return IndexId;
         }
 
