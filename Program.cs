@@ -446,9 +446,9 @@ namespace MiniBankProject
                         // convert string to double using TryParse
                         double.TryParse(WithdrawAmount, out FinalwithdrawAmount);
                         // check if user balamce is less than or equal MinimumBalance
-                        if (UserBalances[IndexID] <= MinimumBalance)
+                        if (FinalwithdrawAmount < UserBalances[IndexID])
                         {
-                            Console.WriteLine("Can not withdraw from your balance, becouse your balance has less than or equal 100.00$");
+                            Console.WriteLine($"Can not withdraw from your balance, becouse your balance has less withdraw amount {FinalwithdrawAmount}, your balance is {UserBalances[IndexID]}");
                         }
                         else
                         {
@@ -964,6 +964,7 @@ namespace MiniBankProject
         }
 
         // 2. save and load reqest 
+        //Define a static method to save user requests to a file
         public static void SaveRequestsToFaile()
         {
             try // Try to execute the code inside the block
@@ -987,7 +988,7 @@ namespace MiniBankProject
                 Console.WriteLine("Error saving request to file.");
             }
         }
-
+        // Define a static method to load user requests to a file 
         public static void LoadRequests()
         {
             try // Try to execute the code inside the block
@@ -1013,8 +1014,6 @@ namespace MiniBankProject
                 Console.WriteLine("Error loading request.");
             }
         }
-
-
 
     }
 
