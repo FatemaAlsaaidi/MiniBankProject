@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.Design;
 using System.Diagnostics.Metrics;
@@ -31,7 +32,12 @@ namespace MiniBankProject
         static List<string> AccountUserNationalID = new List<string>();
         static List<double> UserBalances = new List<double>();
 
+
+        // generate ID number for Admin account 
+        static int LastAdminAccountNumber = 0;
+
         // Admin Login information 
+        static List<int> AdminAccountNumber = new List<int>();
         static List<string> AdminName = new List<string>();
         static List<string> AdminID = new List<string>();
 
@@ -47,6 +53,7 @@ namespace MiniBankProject
             LoadAccountsInformationFromFile();
             LoadReviews();
             LoadRequests();
+            LoadAdminInformationFromFile();
             bool UsersSystemMenu = true;
             // while loop to display the mnue ewhile the flag is true
             while (UsersSystemMenu)
@@ -75,6 +82,7 @@ namespace MiniBankProject
                         SaveAccountsInformationToFile();
                         SaveReviews();
                         SaveRequestsToFaile();
+                        SaveAdminInformationToFile();
                         UsersSystemMenu = false;
                         break;
                     // by default case to display error choic message 
@@ -647,9 +655,12 @@ namespace MiniBankProject
                     }
                     else
                     {
+                        int NewAdminAccountNumber = LastAdminAccountNumber + 1;
+                        AdminAccountNumber.Add(NewAdminAccountNumber);
                         AdminName.Add(UserName);
                         AdminID.Add(UserID);
                         Console.WriteLine("Request Account Creation successfully submitted.");
+                        LastAdminAccountNumber = NewAdminAccountNumber;
                     }
                 }
 
@@ -1249,6 +1260,86 @@ namespace MiniBankProject
         }
 
         //4. save and load admin information 
+        // Define a static method to save account information to a file
+        public static void SaveAdminInformationToFile()
+        {
+            try // Try to execute the code inside the block
+            {
+                // Open the file for writing 
+                using (StreamWriter writer = new StreamWriter(AdminInformationFilePath))
+                {
+                    // Loop through all accounts by index
+                    for (int i = 0; i < AdminID.Count; i++)
+                    {
+                        // Create a line of data combining account info separated by commas
+                        string dataLine = $"{AdminAccountNumber[i]},{AdminID[i]},{AdminName[i]}";
+                        // Write the data line into the file
+                        writer.WriteLine(dataLine);
+                    }
+                }
+                // Inform the user that accounts were saved successfully
+                Console.WriteLine("Admin Accounts saved successfully.");
+            }
+            catch // If any error occurs during saving
+            {
+                // Inform the user that there was an error saving the file
+                Console.WriteLine("Error saving file.");
+            }
+        }
+        // Define a static method that loads account information from a file
+        public static void LoadAdminInformationFromFile()
+        {
+            try  // Try to execute the code inside the block
+            {
+                // Check if the accounts file does not exist
+                if (!File.Exists(AdminInformationFilePath))
+                {
+                    // Inform the user that no data was found
+                    Console.WriteLine("No saved data found.");
+                    // Exit the method early
+                    return;
+                }
+                // Clear the list of Admin name
+                AdminName.Clear();
+                // Clear the list of Admin ID
+                AdminID.Clear();
+
+                
+                // Open the file for reading using StreamReader
+                using (StreamReader reader = new StreamReader(AdminInformationFilePath))
+                {
+                    string line; // Declare a variable to hold each line
+                    // Read each line until the end of the file
+                    while ((line = reader.ReadLine()) != null)
+                    {
+                        // Split the line into parts separated by commas
+                        string[] parts = line.Split(',');
+                        // Convert the first part to an integer
+                        int accNum = Convert.ToInt32(parts[0]);
+                        // Add the account number to the list
+                        AdminAccountNumber.Add(accNum);
+                        // Add the account username to the list
+                        AdminName.Add(parts[1]);
+                        // Add the account user national ID to the list
+                        AdminID.Add(parts[2]);
+                       
+                        // Update the last account number if this one is bigger
+                        if (accNum > LastAccountNumber)
+                            LastAccountNumber = accNum;
+                    }
+                }
+                // Inform the user that accounts have been loaded successfully
+                Console.WriteLine("Accounts loaded successfully.");
+                Console.ReadLine();
+            }
+            catch// If any error happens
+            {
+                // Inform the user that there was an error loading the file
+                Console.WriteLine("Error loading file.");
+                Console.ReadLine();
+            }
+
+        }
 
     }
 
