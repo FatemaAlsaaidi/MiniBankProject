@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.Design;
 using System.Diagnostics.Metrics;
 using System.Net.Http.Headers;
 using System.Reflection.Metadata.Ecma335;
@@ -88,6 +89,7 @@ namespace MiniBankProject
                 Console.WriteLine("\n------ User Menu ------");
                 Console.WriteLine("1. Request Account Creation");
                 Console.WriteLine("2. Login");
+                Console.WriteLine("0. exist");
                 Console.Write("Select option: ");
                 char userChoice = Console.ReadKey().KeyChar;
                 Console.WriteLine();
@@ -232,6 +234,7 @@ namespace MiniBankProject
                     string ID = Console.ReadLine();
                     // valid the ID input
                     ValidID = NationalIDValidation(ID);
+                    // check if 
                     if (ValidID == true)
                     {
                         UserID = ID;
@@ -249,19 +252,37 @@ namespace MiniBankProject
                     }
                 } while (ValidID == false && tries < 3);
                 tries = 0;
-                if (IsSave == true)
+                
+                if (IsSave == true )
                 {
-                    // save user name and id in the single string value 
-                    string request = UserName + '|' + UserID;
-                    // add into createAccountRequests queue 
-                    createAccountRequests.Enqueue(request);
-                    // display message submit successfully 
-                    Console.WriteLine("Request Account Creation successfully submit");
+                    bool AlreadyRequested = false;
+                    // loop in queue to chech if request with same id already submit to Prevent Duplicate Account Requests 
+                    foreach (string Request in createAccountRequests)
+                    {
+                        // split request to get the user id number
+                        string[] splitRequest = Request.Split("|");
+                        //check if id in rqures queue id exist or not 
+                        if (splitRequest[1] == UserID)
+                        {
+                            // if yes put AlreadyRequested flag with true value
+                            AlreadyRequested = true;
+                            break;
+                        }
+
+                    }
+                    // based on AlreadyRequested flad we decided if we save user inputes of account information or not 
+                    if (AlreadyRequested)
+                    {
+                        Console.WriteLine("Your request is already waiting for confirmation.");
+                    }
+                    else
+                    {
+                        string request = UserName + "|" + UserID;
+                        createAccountRequests.Enqueue(request);
+                        Console.WriteLine("Request Account Creation successfully submitted.");
+                    }
                 }
-                else
-                {
-                    return;
-                }
+                
                 
             }
             catch
