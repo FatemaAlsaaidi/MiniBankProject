@@ -277,6 +277,7 @@ namespace MiniBankProject
                     }
                     else
                     {
+                        // save request in queue
                         string request = UserName + "|" + UserID;
                         createAccountRequests.Enqueue(request);
                         Console.WriteLine("Request Account Creation successfully submitted.");
@@ -389,6 +390,8 @@ namespace MiniBankProject
 
                         // Update the user's balance by adding the deposit amount.
                         UserBalances[IndexID] = UserBalances[IndexID] + FinalDepositAmount;
+                        Console.WriteLine("Successfully Deposit");
+                        Console.WriteLine($"Your Current Balance is {UserBalances[IndexID]}");
                         // Set the flag to true to exit the loop.
                         IsDeposit = true;
                         // Exit the method (if inside a method).
@@ -448,6 +451,8 @@ namespace MiniBankProject
                         {
                             // Update the user's balance by adding the deposit amount.
                             UserBalances[IndexID] = UserBalances[IndexID] - FinalwithdrawAmount;
+                            Console.WriteLine("Successfully Deposit");
+                            Console.WriteLine($"Your Current Balance is {UserBalances[IndexID]}");
                             // Set the flag to true to exit the loop.
                             IsWithdraw = true;
                             // Exit the method (if inside a method).
