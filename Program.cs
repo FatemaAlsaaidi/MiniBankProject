@@ -18,6 +18,7 @@ namespace MiniBankProject
         const double MinimumBalance = 100.0;
         const string AccountsFilePath = "accounts.txt";
         const string ReviewsFilePath = "reviews.txt";
+        const string RequestsFilePath = "requests.txt";
         // generate ID number for every account 
         static int LastAccountNumber = 0;
         static int IndexID = 0;
@@ -40,6 +41,7 @@ namespace MiniBankProject
         {
             LoadAccountsInformationFromFile();
             LoadReviews();
+            LoadRequests();
             bool UsersSystemMenu = true;
             // while loop to display the mnue ewhile the flag is true
             while (UsersSystemMenu)
@@ -67,6 +69,7 @@ namespace MiniBankProject
                     case '0':
                         SaveAccountsInformationToFile();
                         SaveReviews();
+                        SaveRequestsToFaile();
                         UsersSystemMenu = false;
                         break;
                     // by default case to display error choic message 
@@ -957,6 +960,57 @@ namespace MiniBankProject
             {
                 // Inform the user that there was an error loading the file
                 Console.WriteLine("Error loading reviews.");
+            }
+        }
+
+        // 2. save and load reqest 
+        public static void SaveRequestsToFaile()
+        {
+            try // Try to execute the code inside the block
+            {
+                // Open the file for writing 
+                using (StreamWriter writer = new StreamWriter(RequestsFilePath))
+                {
+                    // Loop through all reviews
+                    foreach (var request in createAccountRequests)
+                    {
+                        // Write the review line into the file
+                        writer.WriteLine(request);
+                    }
+                }
+                // Inform the user that accounts were saved successfully
+                Console.WriteLine("requests saved successfully.");
+            }
+            catch // If any error occurs during saving
+            {
+                // Inform the user that there was an error saving the file
+                Console.WriteLine("Error saving request to file.");
+            }
+        }
+
+        public static void LoadRequests()
+        {
+            try // Try to execute the code inside the block
+            {
+                // Check if the accounts file does not exist
+                if (!File.Exists(RequestsFilePath)) return;
+                // Open the file for reading using StreamReader
+                using (StreamReader reader = new StreamReader(RequestsFilePath))
+                {
+                    // declare line variable to hold every line 
+                    string line;
+                    // Read each line until the end of the file
+                    while ((line = reader.ReadLine()) != null)
+                    {
+                        // load the value of line in  UserReviewsStack
+                        createAccountRequests.Enqueue(line);
+                    }
+                }
+            }
+            catch // If any error happens
+            {
+                // Inform the user that there was an error loading the file
+                Console.WriteLine("Error loading request.");
             }
         }
 
