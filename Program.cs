@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.VisualBasic;
+using System;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.Design;
@@ -429,14 +430,15 @@ namespace MiniBankProject
             bool IsWithdraw = false;
             // Initialize a variable to store the final parsed deposit amount.
             double FinalwithdrawAmount = 0.0;
-            // Initialize an index to find the user's position in the account list.
-            
+            // declare variable print balance after any process
+            double BalanceAfterProcess = 0.0;
             // Start a try block to catch potential runtime exceptions.
             try
             {
                 // Repeat until a valid deposit is made.
                 do
                 {
+                    
                     Console.WriteLine("Enter the amount of money you want to withdrw from your balance: ");
                     string WithdrawAmount = Console.ReadLine();
                     // Validate the entered amount using a custom method.
@@ -455,19 +457,19 @@ namespace MiniBankProject
                         // convert string to double using TryParse
                         double.TryParse(WithdrawAmount, out FinalwithdrawAmount);
                         // check if user balamce is less than or equal MinimumBalance
-                        if ((UserBalances[IndexID] > MinimumBalance) && (FinalwithdrawAmount <= (UserBalances[IndexID] - MinimumBalance)))
+                        bool checkBalance = CheckBalanceAmount(FinalwithdrawAmount, IndexID);
+                        if (checkBalance == true)
                         {
                             // Update the user's balance by adding the deposit amount.
                             UserBalances[IndexID] = UserBalances[IndexID] - FinalwithdrawAmount;
-                            Console.WriteLine("Successfully Deposit");
-                            Console.WriteLine($"Your Current Balance is {UserBalances[IndexID]}");
+                            Console.WriteLine($"Successfully withdraw {FinalwithdrawAmount} from your Account, Your Current Balance is {UserBalances[IndexID]}");
                             // Set the flag to true to exit the loop.
                             IsWithdraw = true;
-                            // Exit the method (if inside a method).
                         }
                         else
                         {
-                            Console.WriteLine($"Can not withdraw from your balance, becouse your balance has just 100.00");
+                            BalanceAfterProcess = UserBalances[IndexID] - FinalwithdrawAmount;
+                            Console.WriteLine($"Can not withdraw {FinalwithdrawAmount} from your balance, becouse your balance after with draw is {BalanceAfterProcess} which less than 100.00");
                         }
                         return;
 
@@ -1370,6 +1372,26 @@ namespace MiniBankProject
                 Console.ReadLine();
             }
 
+        }
+
+        //************************************ check balance amount to decided if we can withdraw or not *********************************
+        public static bool CheckBalanceAmount(double FinalAmount, int indexID)
+        {
+            // flag 
+            bool GoWithProcess = false; 
+            // check if balance has more than Minimum Balance 
+            if ((UserBalances[IndexID] > MinimumBalance) && (FinalAmount <= (UserBalances[IndexID] - MinimumBalance)))
+            {
+                // put flag as true if user can go with process 
+                GoWithProcess = true;
+            }
+            else
+            {
+                // put flag as flase if user can not go with process becoouse its balance has just 100.00$
+                GoWithProcess = false;
+            }
+
+            return GoWithProcess;
         }
 
     }
