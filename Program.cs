@@ -455,11 +455,7 @@ namespace MiniBankProject
                         // convert string to double using TryParse
                         double.TryParse(WithdrawAmount, out FinalwithdrawAmount);
                         // check if user balamce is less than or equal MinimumBalance
-                        if (FinalwithdrawAmount > UserBalances[IndexID])
-                        {
-                            Console.WriteLine($"Can not withdraw from your balance, becouse your balance has less than withdraw amount {FinalwithdrawAmount}, your balance is {UserBalances[IndexID]}");
-                        }
-                        else
+                        if ((UserBalances[IndexID] > MinimumBalance) && (FinalwithdrawAmount <= (UserBalances[IndexID] - MinimumBalance)))
                         {
                             // Update the user's balance by adding the deposit amount.
                             UserBalances[IndexID] = UserBalances[IndexID] - FinalwithdrawAmount;
@@ -468,6 +464,10 @@ namespace MiniBankProject
                             // Set the flag to true to exit the loop.
                             IsWithdraw = true;
                             // Exit the method (if inside a method).
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Can not withdraw from your balance, becouse your balance has just 100.00");
                         }
                         return;
 
@@ -828,7 +828,7 @@ namespace MiniBankProject
                 // Increment the last account ID number for the new account
                 int NewAccountIDNumber = LastAccountNumber + 1;
                 // Set initial account balance to 0
-                double balance = 0.0;
+                double balance = MinimumBalance;
                 // Add user name in the AccountUserNames list
                 AccountUserNames.Add(UserName);
                 // Add user national ID in the AccountUserNationalID list
