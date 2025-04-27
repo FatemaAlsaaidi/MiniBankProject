@@ -51,6 +51,8 @@ namespace MiniBankProject
         // ======================================== Menu Functions =================================
         static void Main(string[] args)
         {
+            Console.WriteLine("========== Wellcome To Bank System =======================");
+            Console.ReadLine();
             LoadAccountsInformationFromFile();
             LoadReviews();
             LoadRequests();
@@ -198,8 +200,6 @@ namespace MiniBankProject
                 }
             }
         }
-
-        
 
         // ===================== User Features Function ==========================
         // Request Account Creation fiunction
@@ -403,7 +403,8 @@ namespace MiniBankProject
 
                         // Update the user's balance by adding the deposit amount.
                         UserBalances[IndexID] = UserBalances[IndexID] + FinalDepositAmount;
-                        Console.WriteLine("Successfully Deposit");
+                        UserBalances[IndexID] = UserBalances[IndexID] + FinalDepositAmount;
+                        Console.WriteLine($"Successfully Deposit {FinalDepositAmount}");
                         Console.WriteLine($"Your Current Balance is {UserBalances[IndexID]}");
                         // Set the flag to true to exit the loop.
                         IsDeposit = true;
@@ -1178,8 +1179,8 @@ namespace MiniBankProject
                     }
                 }
                 // Inform the user that accounts have been loaded successfully
-                Console.WriteLine("Accounts loaded successfully.");
-                Console.ReadLine();
+                //Console.WriteLine("Accounts loaded successfully.");
+                //Console.ReadLine();
             }
             catch// If any error happens
             {
@@ -1362,8 +1363,8 @@ namespace MiniBankProject
                     }
                 }
                 // Inform the user that accounts have been loaded successfully
-                Console.WriteLine("Accounts loaded successfully.");
-                Console.ReadLine();
+                //Console.WriteLine("Accounts loaded successfully.");
+                //Console.ReadLine();
             }
             catch// If any error happens
             {
