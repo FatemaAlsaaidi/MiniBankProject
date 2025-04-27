@@ -21,6 +21,7 @@ namespace MiniBankProject
         const string AccountsFilePath = "accounts.txt";
         const string ReviewsFilePath = "reviews.txt";
         const string RequestsFilePath = "requests.txt";
+        const string InAcceptRequestsFilePath = "InRequests.txt";
         const string AdminInformationFilePath = "Admin.txt";
         // generate ID number for every account 
         static int LastAccountNumber = 0;
@@ -45,6 +46,7 @@ namespace MiniBankProject
         //Requests in queue
         //static Queue<(string name, string nationalID)> createAccountRequests = new Queue<(string, string)>();
         static Queue<string> createAccountRequests = new Queue<string>(); // format: "Name|NationalID"
+        static Queue<string> InAcceptcreateAccountRequests = new Queue<string>(); // format: "Name|NationalID"
 
         //review in stack
         static Stack<string> UserReviewsStack = new Stack<string>();
@@ -57,6 +59,7 @@ namespace MiniBankProject
             LoadReviews();
             LoadRequests();
             LoadAdminInformationFromFile();
+            LoadInAcceptRequests();
             bool UsersSystemMenu = true;
             // while loop to display the mnue ewhile the flag is true
             while (UsersSystemMenu)
@@ -86,6 +89,7 @@ namespace MiniBankProject
                         SaveReviews();
                         SaveRequestsToFaile();
                         SaveAdminInformationToFile();
+                        SaveInRequestsToFaile();
                         UsersSystemMenu = false;
                         break;
                     // by default case to display error choic message 
@@ -826,24 +830,45 @@ namespace MiniBankProject
                 string[] SplitRrquest = request.Split("|");
                 // Extract and store the username from the request
                 string UserName = SplitRrquest[0];
+                Console.WriteLine($"User Name: {UserName} ");
                 // Extract and store the national ID from the request
                 string UserNationalID = SplitRrquest[1];
+                Console.WriteLine($"User National ID: {UserNationalID} ");
                 // Increment the last account ID number for the new account
                 int NewAccountIDNumber = LastAccountNumber + 1;
                 // Set initial account balance to 0
                 double balance = MinimumBalance;
-                // Add user name in the AccountUserNames list
-                AccountUserNames.Add(UserName);
-                // Add user national ID in the AccountUserNationalID list
-                AccountUserNationalID.Add(UserNationalID);
-                // Add user Account ID in the AccountIDNumbers list
-                AccountNumbers.Add(NewAccountIDNumber);
-                // Add user initial balance in the Balances list
-                UserBalances.Add(balance);
-                // add user type 
-                Console.WriteLine($"Account created for {UserName} with Account Number: {NewAccountIDNumber}");
-                LastAccountNumber = NewAccountIDNumber;
+                Console.WriteLine("Do you want to accept account creation request (y/n) !");
+                char choice = Console.ReadKey().KeyChar;
+                if (choice == 'y' || choice == 'Y')
+                {
+                    // Add user name in the AccountUserNames list
+                    AccountUserNames.Add(UserName);
+                    // Add user national ID in the AccountUserNationalID list
+                    AccountUserNationalID.Add(UserNationalID);
+                    // Add user Account ID in the AccountIDNumbers list
+                    AccountNumbers.Add(NewAccountIDNumber);
+                    // Add user initial balance in the Balances list
+                    UserBalances.Add(balance);
+                    // add user type 
+                    Console.WriteLine($"Account created for {UserName} with Account Number: {NewAccountIDNumber}");
+                    LastAccountNumber = NewAccountIDNumber;
+                }
+                else
+                {
+                    Console.WriteLine("Account Dose not accept!");
+                    string InAcceptRequest = request;
+                    InAcceptcreateAccountRequests.Enqueue(InAcceptRequest);
+                }
 
+                //Console.WriteLine("Do you want to exist from this page? (y/n)");
+                //char choice2 = Console.ReadKey().KeyChar;
+                //if (choice == 'y' || choice == 'Y')
+                //{
+                //    string InAcceptRequest2 = InAcceptcreateAccountRequests.Dequeue();
+                //    createAccountRequests.Enqueue(InAcceptRequest2);
+
+                //}
 
             }
             catch
@@ -1373,6 +1398,58 @@ namespace MiniBankProject
                 Console.ReadLine();
             }
 
+        }
+
+        // 4. save and load inaccept reqest 
+        //Define a static method to save user requests to a file
+        public static void SaveInRequestsToFaile()
+        {
+            try // Try to execute the code inside the block
+            {
+                // Open the file for writing 
+                using (StreamWriter writer = new StreamWriter(InAcceptRequestsFilePath))
+                {
+                    // Loop through all reviews
+                    foreach (var InAcceptrequest in InAcceptcreateAccountRequests)
+                    {
+                        // Write the inAccept request line into the file
+                        writer.WriteLine(InAcceptrequest);
+                    }
+                }
+                // Inform the user that accounts were saved successfully
+                Console.WriteLine("Inrequests saved successfully.");
+            }
+            catch // If any error occurs during saving
+            {
+                // Inform the user that there was an error saving the file
+                Console.WriteLine("Error saving InAcceptrequest to file.");
+            }
+        }
+        // Define a static method to load user requests to a file 
+        public static void LoadInAcceptRequests()
+        {
+            try // Try to execute the code inside the block
+            {
+                // Check if the accounts file does not exist
+                if (!File.Exists(InAcceptRequestsFilePath)) return;
+                // Open the file for reading using StreamReader
+                using (StreamReader reader = new StreamReader(InAcceptRequestsFilePath))
+                {
+                    // declare line variable to hold every line 
+                    string line;
+                    // Read each line until the end of the file
+                    while ((line = reader.ReadLine()) != null)
+                    {
+                        // load the value of line in  UserReviewsStack
+                        InAcceptcreateAccountRequests.Enqueue(line);
+                    }
+                }
+            }
+            catch // If any error happens
+            {
+                // Inform the user that there was an error loading the file
+                Console.WriteLine("Error loading InAccept request.");
+            }
         }
 
         //************************************ check balance amount to decided if we can withdraw or not *********************************
