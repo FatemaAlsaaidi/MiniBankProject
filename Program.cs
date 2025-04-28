@@ -162,7 +162,7 @@ namespace MiniBankProject
             while (InAdminMenu)
             {
                 Console.Clear();
-                Console.WriteLine("\n------ User Menu ------");
+                Console.WriteLine("\n------ Admin Menu ------");
                 Console.WriteLine("1. create account");
                 Console.WriteLine("2. Login");
                 Console.WriteLine("0. exist");
@@ -181,7 +181,7 @@ namespace MiniBankProject
                     case '2':
                         IndexID = AdminLoginWithID();
                         Console.ReadLine(); // Wait for user input before continuing
-                        if (IndexID != -1)
+                        if (IndexID !=0)
                         {
                             AdminMenuOperations();
                             Console.ReadLine();
@@ -570,7 +570,7 @@ namespace MiniBankProject
             string UserName = "";
             bool ValidName = true;
             string UserID = "";
-            bool ValidID = true;
+            bool ValidID = false;
             bool IsSave = true;
             int tries = 0;
             // Error handling 
@@ -630,22 +630,22 @@ namespace MiniBankProject
 
                 if (IsSave == true)
                 {
-                    bool AlreadyRequested = false;
+                    bool AlreadyExist = false;
                     // loop in queue to chech if request with same id already submit to Prevent Duplicate Account Requests 
                     for(int i = 0; i < AdminID.Count; i++) {
                         //check if id in rqures queue id exist or not 
-                        if (AdminID[1] == UserID)
+                        if (AdminID[i] == UserID)
                         {
                             // if yes put AlreadyRequested flag with true value
-                            AlreadyRequested = true;
+                            AlreadyExist = true;
                             break;
                         }
 
                     }
                     // based on AlreadyRequested flad we decided if we save user inputes of account information or not 
-                    if (AlreadyRequested)
+                    if (AlreadyExist)
                     {
-                        Console.WriteLine("Your request is already account with thid ID Number.");
+                        Console.WriteLine("Admin with this ID number is already exist");
                     }
                     else
                     {
@@ -663,7 +663,7 @@ namespace MiniBankProject
             catch
             {
                 // display message submit failed 
-                Console.WriteLine("Request Account Creation failed submit");
+                Console.WriteLine("Admin Account Creation failed");
             }
 
         }
@@ -898,7 +898,7 @@ namespace MiniBankProject
 
             if (Regex.IsMatch(word, @"^[a-zA-Z]+$"))
             {
-                Console.WriteLine("Valid: only letters.");
+                //Console.WriteLine("Valid: only letters.");
                 IsValid = true;
             }
             else
@@ -942,7 +942,7 @@ namespace MiniBankProject
                     // Check if input is exactly 8 digits and only contains numbers
                     if (NationalID.Length == 8 && NationalID.All(char.IsDigit))
                     {
-                        Console.WriteLine("your National ID : " + NationalID);
+                        //Console.WriteLine("your National ID : " + NationalID);
                         IsValid = true;
                     }
                     else
