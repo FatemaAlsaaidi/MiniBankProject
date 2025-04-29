@@ -181,7 +181,7 @@ namespace MiniBankProject
                     case '2':
                         IndexID = AdminLoginWithID();
                         Console.ReadLine(); // Wait for user input before continuing
-                        if (IndexID !=0)
+                        if (IndexID !=-1)
                         {
                             AdminMenuOperations();
                             Console.ReadLine();
@@ -748,7 +748,7 @@ namespace MiniBankProject
             } while (AdminExist == false && tries <3);
             if (AdminExist == true)
             {
-                //lopp thriugh items in list
+                //loop thriugh items in list
                 for (int i = 0; i < AdminID.Count; i++)
                 {
                     //check if Input exist in the list 
