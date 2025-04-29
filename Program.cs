@@ -5,6 +5,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.Design;
 using System.Diagnostics.Metrics;
 using System.Net.Http.Headers;
+using System.Reflection;
 using System.Reflection.Metadata.Ecma335;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -532,7 +533,7 @@ namespace MiniBankProject
             do
             {
                 // Prompt user to enter their National ID
-                Console.WriteLine("Enter You National ID: ");
+                Console.WriteLine("Enter User National ID: ");
                 ID = Console.ReadLine(); // Read user input from console                           
                 // valid user exist
                 UserExist = UserLogin(ID);
@@ -681,6 +682,7 @@ namespace MiniBankProject
                 Console.WriteLine("2. View Submitted Reviews");
                 Console.WriteLine("3. View All Accounts");
                 Console.WriteLine("4. View Pending Account Requests");
+                Console.WriteLine("5. Search User account by user National ID");
                 Console.WriteLine("0. Return to Main Menu");
                 Console.Write("Select option: ");
                 char adminChoice = Console.ReadKey().KeyChar;
@@ -707,6 +709,12 @@ namespace MiniBankProject
                     // case to View Pending Account Requests
                     case '4':
                         ViewPendingRequests();
+                        Console.ReadLine();
+                        break;
+                    // Search user by enter user National ID
+                    case '5':
+                        int UserIndexID = UserLoginWithID();
+                        SearchUserByNationalID(UserIndexID);
                         Console.ReadLine();
                         break;
                     // case to Return to Main Menu
@@ -879,6 +887,18 @@ namespace MiniBankProject
             
         }
 
+        //  Search by National ID or Name (Admin Tool)
+        public static void SearchUserByNationalID(int UserIndexID)
+        {
+            
+            //display user account number, name , balance with the enter national id 
+            Console.WriteLine($"User Account Numbaer : {AccountNumbers[UserIndexID]}");
+            Console.WriteLine($"User Name : {AccountUserNames[UserIndexID]}");
+            Console.WriteLine($"User Balance : {UserBalances[UserIndexID]}");
+            
+
+        }
+
         // ************************************************* Validation **********************************************
         // string validation 
         public static bool stringOnlyLetterValidation(string word)
@@ -1019,6 +1039,7 @@ namespace MiniBankProject
         // valid user id
         public static bool UserLogin(string ID)
         {
+            int IndexUserID = 0;
             bool ValidUserLogin = true;
             // Start of try block to catch any unexpected runtime exceptions
             try
@@ -1034,20 +1055,21 @@ namespace MiniBankProject
                         // Check if the current ID in the list matches the user's input
                         if (AccountUserNationalID[i] == ID)
                         {
+                            IndexUserID = i;
                             userFound = true;  // If match found, set userFound = true
                             break;
                         }
                     }
                     if (userFound)
                     {
-                        Console.WriteLine("User Login successful!");
+                        Console.WriteLine($"successfully enter this {AccountUserNationalID[IndexUserID]} account!");
                         ValidUserLogin = true;
 
                     }
                     else
                     {
                         // If loop completes with no match, show message
-                        Console.WriteLine("User not found. please create an account before do this process");
+                        Console.WriteLine("User  with this ID number not found. please create an account before do this process");
                         ValidUserLogin = false;  // User not found, so login fails
 
                     }
