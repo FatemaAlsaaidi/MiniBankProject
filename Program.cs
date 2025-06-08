@@ -51,6 +51,10 @@ namespace MiniBankProject
 
         //review in stack
         static Stack<string> UserReviewsStack = new Stack<string>();
+
+        // Export All Account Info file path
+        static string ExportFilePath = "ExportedAccounts.txt";
+
         // ======================================== Menu Functions =================================
         static void Main(string[] args)
         {
@@ -800,6 +804,7 @@ namespace MiniBankProject
                 Console.WriteLine("6. Show Total Bank Balance");
                 Console.WriteLine("7. Delete Account");
                 Console.WriteLine("8. Show Top 3 Richest Customers");
+                Console.WriteLine("9. Export All Account Info to a New File (CSV or txt)");
                 Console.WriteLine("0. Return to Main Menu");
                 Console.Write("Select option: ");
                 char adminChoice = Console.ReadKey().KeyChar;
@@ -854,6 +859,12 @@ namespace MiniBankProject
                         break;
                     case '8':
                         ShowTop3RichestCustomers();
+                        Console.ReadLine();
+                        break;
+                    // Export All Account Info to a New File (CSV or txt)
+                    case '9':
+                        ExportAccountsToFile(ExportFilePath);
+                        Console.WriteLine($"All account information has been exported to {ExportFilePath}");
                         Console.ReadLine();
                         break;
                     // case to Return to Main Menu
@@ -1083,6 +1094,32 @@ namespace MiniBankProject
             foreach (var user in top3Richest)
             {
                 Console.WriteLine($"Account Number: {AccountNumbers[user.index]}, Name: {AccountUserNames[user.index]}, Balance: {user.balance}");
+            }
+        }
+        /* 
+         Export All Account Info to a New File (CSV or txt) 
+            • Create a clean export with headers and all customer info.
+        */
+
+        public static void ExportAccountsToFile(string filePath)
+        {
+            try
+            {
+                using (StreamWriter writer = new StreamWriter(filePath))
+                {
+                    // Write headers
+                    writer.WriteLine("Account Number,User Name,National ID,Balance");
+                    // Iterate through all accounts and write their information
+                    for (int i = 0; i < AccountUserNationalID.Count; i++)
+                    {
+                        writer.WriteLine($"{AccountNumbers[i]},{AccountUserNames[i]},{AccountUserNationalID[i]},{UserBalances[i]}");
+                    }
+                }
+                Console.WriteLine($"Accounts exported successfully to {filePath}");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Error exporting accounts: {e.Message}");
             }
         }
 
