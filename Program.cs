@@ -683,6 +683,7 @@ namespace MiniBankProject
                 Console.WriteLine("3. View All Accounts");
                 Console.WriteLine("4. View Pending Account Requests");
                 Console.WriteLine("5. Search User account by user National ID");
+                Console.WriteLine("6. Show Total Bank Balance");
                 Console.WriteLine("0. Return to Main Menu");
                 Console.Write("Select option: ");
                 char adminChoice = Console.ReadKey().KeyChar;
@@ -715,6 +716,11 @@ namespace MiniBankProject
                     case '5':
                         int UserIndexID = UserLoginWithID();
                         SearchUserByNationalID(UserIndexID);
+                        Console.ReadLine();
+                        break;
+                    // Show Total Bank Balance
+                    case '6':
+                        ShowTotalBankBalance();
                         Console.ReadLine();
                         break;
                     // case to Return to Main Menu
@@ -897,6 +903,14 @@ namespace MiniBankProject
             Console.WriteLine($"User Balance : {UserBalances[UserIndexID]}");
             
 
+        }
+        //  Show Total Bank Balance
+        public static void ShowTotalBankBalance()
+        {
+            // Calculate the total balance by summing all user balances
+            double totalBalance = UserBalances.Sum();
+            // Display the total balance
+            Console.WriteLine($"Total Bank Balance: {totalBalance}");
         }
 
         // ************************************************* Validation **********************************************
