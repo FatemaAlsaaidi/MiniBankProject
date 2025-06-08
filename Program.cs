@@ -799,6 +799,7 @@ namespace MiniBankProject
                 Console.WriteLine("5. Search User account by user National ID");
                 Console.WriteLine("6. Show Total Bank Balance");
                 Console.WriteLine("7. Delete Account");
+                Console.WriteLine("8. Show Top 3 Richest Customers");
                 Console.WriteLine("0. Return to Main Menu");
                 Console.Write("Select option: ");
                 char adminChoice = Console.ReadKey().KeyChar;
@@ -849,6 +850,10 @@ namespace MiniBankProject
                         {
                             Console.WriteLine("Login failed. Please check your National ID.");
                         }
+                        Console.ReadLine();
+                        break;
+                    case '8':
+                        ShowTop3RichestCustomers();
                         Console.ReadLine();
                         break;
                     // case to Return to Main Menu
@@ -1057,6 +1062,27 @@ namespace MiniBankProject
             else
             {
                 Console.WriteLine("Invalid user index. Account deletion failed.");
+            }
+        }
+
+        // Show Top 3 Richest Customers 
+        public static void ShowTop3RichestCustomers()
+        {
+            // Check if there are at least 3 users
+            if (UserBalances.Count < 3)
+            {
+                Console.WriteLine("Not enough users to determine the top 3 richest customers.");
+                return;
+            }
+            // Create a list of tuples containing user index and balance
+            var userBalancesWithIndex = UserBalances.Select((balance, index) => (index, balance)).ToList();
+            // Sort the list by balance in descending order
+            var top3Richest = userBalancesWithIndex.OrderByDescending(x => x.balance).Take(3).ToList();
+            // Display the top 3 richest customers
+            Console.WriteLine("Top 3 Richest Customers:");
+            foreach (var user in top3Richest)
+            {
+                Console.WriteLine($"Account Number: {AccountNumbers[user.index]}, Name: {AccountUserNames[user.index]}, Balance: {user.balance}");
             }
         }
 
