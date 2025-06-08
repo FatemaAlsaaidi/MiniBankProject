@@ -325,6 +325,7 @@ namespace MiniBankProject
                 Console.WriteLine("3. View Balance");
                 Console.WriteLine("4. Submit Review/Complaint");
                 Console.WriteLine("5. Transfer Money");
+                Console.WriteLine("6. Undo Last Complaint"); 
                 Console.WriteLine("0. Return to Main Menu");
                 Console.Write("Select option: ");
                 char userChoice = Console.ReadKey().KeyChar;
@@ -377,6 +378,11 @@ namespace MiniBankProject
                         {
                             Console.WriteLine("Login failed. Please check the National ID of the recipient.");
                         }
+                        Console.ReadLine(); // Wait for user input before continuing
+                        break;
+                    // Undo Last Complaint
+                    case '6':
+                        UndoLastComplaint();
                         Console.ReadLine(); // Wait for user input before continuing
                         break;
                     // case to exist from user menu and Return to Main Menu 
@@ -643,6 +649,22 @@ namespace MiniBankProject
                 } while (IsTransfer == false && tries < 3);
             }
             catch (Exception e) { Console.WriteLine(e.Message); } // Print any exception message that occurs during execution.
+        }
+
+        // Undo Last Complaint Submitted 
+        public static void UndoLastComplaint()
+        {
+            // Check if there are any reviews in the stack
+            if (UserReviewsStack.Count > 0)
+            {
+                // Pop the last review from the stack
+                string lastReview = UserReviewsStack.Pop();
+                Console.WriteLine($"Last review '{lastReview}' has been undone.");
+            }
+            else
+            {
+                Console.WriteLine("No reviews to undo.");
+            }
         }
 
         // ===================== Admin Features Function ==========================
