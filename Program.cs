@@ -434,8 +434,7 @@ namespace MiniBankProject
                         // Update the user's balance by adding the deposit amount.
                         UserBalances[IndexID] = UserBalances[IndexID] + FinalDepositAmount;
                         UserBalances[IndexID] = UserBalances[IndexID] + FinalDepositAmount;
-                        Console.WriteLine($"Successfully Deposit {FinalDepositAmount}");
-                        Console.WriteLine($"Your Current Balance is {UserBalances[IndexID]}");
+                        PrintReceipt(transactionType: "Deposit", amount: FinalDepositAmount, balance: UserBalances[IndexID]);
                         // Set the flag to true to exit the loop.
                         IsDeposit = true;
                         // Exit the method (if inside a method).
@@ -493,7 +492,9 @@ namespace MiniBankProject
                         {
                             // Update the user's balance by adding the deposit amount.
                             UserBalances[IndexID] = UserBalances[IndexID] - FinalwithdrawAmount;
-                            Console.WriteLine($"Successfully withdraw {FinalwithdrawAmount} from your Account, Your Current Balance is {UserBalances[IndexID]}");
+                            Console.WriteLine($"Successfully withdraw");
+                            PrintReceipt(transactionType: "Withdraw", amount: FinalwithdrawAmount, balance: UserBalances[IndexID]);
+
                             // Set the flag to true to exit the loop.
                             IsWithdraw = true;
                         }
@@ -665,6 +666,16 @@ namespace MiniBankProject
             {
                 Console.WriteLine("No reviews to undo.");
             }
+        }
+
+        // Print Receipt After Deposit/Withdraw 
+        public static void PrintReceipt(string transactionType, double amount, double balance)
+        {
+            Console.WriteLine("\n--- Transaction Receipt ---");
+            Console.WriteLine($"Transaction Type: {transactionType}");
+            Console.WriteLine($"Amount: {amount}");
+            Console.WriteLine($"New Balance: {balance}");
+            Console.WriteLine("---------------------------\n");
         }
 
         // ===================== Admin Features Function ==========================
@@ -1153,7 +1164,7 @@ namespace MiniBankProject
                         if (result > 0)
                         {
                             // Input is valid, print confirmation and return true
-                            Console.WriteLine("Valid input: " + result);
+                            //Console.WriteLine("Valid input: " + result);
                             return true;
 
                         }
