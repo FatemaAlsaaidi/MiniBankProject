@@ -684,6 +684,7 @@ namespace MiniBankProject
                 Console.WriteLine("4. View Pending Account Requests");
                 Console.WriteLine("5. Search User account by user National ID");
                 Console.WriteLine("6. Show Total Bank Balance");
+                Console.WriteLine("7. Delete Account");
                 Console.WriteLine("0. Return to Main Menu");
                 Console.Write("Select option: ");
                 char adminChoice = Console.ReadKey().KeyChar;
@@ -721,6 +722,19 @@ namespace MiniBankProject
                     // Show Total Bank Balance
                     case '6':
                         ShowTotalBankBalance();
+                        Console.ReadLine();
+                        break;
+                    // Delete Account
+                    case '7':
+                        int deleteIndexID = UserLoginWithID();
+                        if (deleteIndexID != -1)
+                        {
+                            DeleteAccount(deleteIndexID);
+                        }
+                        else
+                        {
+                            Console.WriteLine("Login failed. Please check your National ID.");
+                        }
                         Console.ReadLine();
                         break;
                     // case to Return to Main Menu
@@ -911,6 +925,25 @@ namespace MiniBankProject
             double totalBalance = UserBalances.Sum();
             // Display the total balance
             Console.WriteLine($"Total Bank Balance: {totalBalance}");
+        }
+
+        // Delete Account
+        public static void DeleteAccount(int IndexID)
+        {
+            // Check if the user exists in the list
+            if (IndexID >= 0 && IndexID < AccountUserNationalID.Count)
+            {
+                // Remove the user from all lists
+                AccountUserNames.RemoveAt(IndexID);
+                AccountUserNationalID.RemoveAt(IndexID);
+                UserBalances.RemoveAt(IndexID);
+                AccountNumbers.RemoveAt(IndexID);
+                Console.WriteLine("Account deleted successfully.");
+            }
+            else
+            {
+                Console.WriteLine("Invalid user index. Account deletion failed.");
+            }
         }
 
         // ************************************************* Validation **********************************************
