@@ -212,7 +212,7 @@ namespace MiniBankProject
         }
 
         // ===================== User Features Function ==========================
-        // Request Account Creation fiunction
+        // Request Account Creation function
         public static void RequestAccountCreation()
         {
             string UserName = "";
