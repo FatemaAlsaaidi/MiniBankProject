@@ -133,11 +133,11 @@ namespace MiniBankProject
                     // case to Deposit
                     case '2':
                         IndexID = UserLoginWithID();
-                        Console.ReadLine(); // Wait for user input before continuing
                         if (IndexID != -1)
                         {
-                            UserMenuOperations(IndexID);
+                            Console.WriteLine("Login successfully");
                             Console.ReadLine();
+                            UserMenuOperations(IndexID);
                         }
                         else
                         {
@@ -255,23 +255,38 @@ namespace MiniBankProject
                     // ask user to enter his national ID 
                     Console.WriteLine("Enter your National ID: ");
                     string ID = Console.ReadLine();
-                    // valid the ID input
-                    ValidID = IDValidation(ID);
-                    // check if 
-                    if (ValidID == true)
+
+                    // check if number already exist in the list of accounts
+                    bool IDExist = AccountUserNationalID.Contains(ID);
+                    if (IDExist)
                     {
-                        UserID = ID;
-                        IsSave = true;
+                        Console.WriteLine("This National ID already exists. Please enter a different ID.");
+                        tries++;
+                        continue; // Skip the rest of the loop and prompt for input again
                     }
                     else
                     {
-                        IsSave = false;
-                        tries++;
-                    }
-                    if (tries == 3)
-                    {
-                        Console.WriteLine("You have exceeded the number of times you are allowed to enter a valid value.");
-                        return;
+
+
+                        // valid the ID input
+                        ValidID = IDValidation(ID);
+                        // check if 
+
+                        if (ValidID == true)
+                        {
+                            UserID = ID;
+                            IsSave = true;
+                        }
+                        else
+                        {
+                            IsSave = false;
+                            tries++;
+                        }
+                        if (tries == 3)
+                        {
+                            Console.WriteLine("You have exceeded the number of times you are allowed to enter a valid value.");
+                            return;
+                        }
                     }
                 } while (ValidID == false && tries < 3);
                 tries = 0;
@@ -567,18 +582,22 @@ namespace MiniBankProject
                 Console.WriteLine("Enter User National ID: ");
                 ID = Console.ReadLine(); // Read user input from console                           
                 // valid user exist
-                UserExist = UserLogin(ID);
-                if(UserExist == false)
+                UserExist = CheckUserIDExist(ID);
+                if(UserExist == false) // or if(!UserExist)
                 {
+                    Console.WriteLine("User with this ID does not exist. Please try again.");
                     tries++;
                 }
-                if (tries == 3)
-                {
-                    Console.WriteLine("You have exceeded the number of times you are allowed to enter a valid ID.");
-                    break;
-                }
+
             } while (UserExist == false && tries <3);
-            if (UserExist == true)
+            if (tries == 3)
+            {
+                Console.WriteLine("You have exceeded the number of times you are allowed to enter a valid ID.");
+                Console.ReadLine();
+                return IndexId;
+            }
+
+            if (UserExist == true) // or if(UserExist)
             {
                 //lopp thriugh items in list
                 for (int i = 0; i < AccountUserNationalID.Count; i++)
@@ -1210,6 +1229,21 @@ namespace MiniBankProject
             return IsValid;
         }
 
+        // Check the exist of user ID in the list
+        public static bool CheckUserIDExist(string UserID)
+        {
+            // Loop through the list of registered National IDs
+            for (int i = 0; i < AccountUserNationalID.Count; i++)
+            {
+                // Check if the current ID in the list matches the user's input
+                if (AccountUserNationalID[i] == UserID)
+                {
+                    return true; // User ID exists in the list
+                }
+            }
+            return false; // User ID does not exist in the list
+        }
+
         // numeric validation with double value
         public static bool AmountValid(string amount)
         {
@@ -1262,7 +1296,7 @@ namespace MiniBankProject
         //*************************** Ask to enter ID number *************************
 
         // valid user id
-        public static bool UserLogin(string ID)
+        /*public static bool UserLogin(string ID)
         {
             int IndexUserID = 0;
             bool ValidUserLogin = true;
@@ -1285,7 +1319,7 @@ namespace MiniBankProject
                             break;
                         }
                     }
-                    if (userFound)
+                    if (userFound== false)
                     {
                         Console.WriteLine($"successfully enter this {AccountUserNationalID[IndexUserID]} account!");
                         ValidUserLogin = true;
@@ -1294,7 +1328,7 @@ namespace MiniBankProject
                     else
                     {
                         // If loop completes with no match, show message
-                        Console.WriteLine("User  with this ID number not found. please create an account before do this process");
+                        Console.WriteLine("User with this ID number not found. please create an account before do this process");
                         ValidUserLogin = false;  // User not found, so login fails
 
                     }
@@ -1315,7 +1349,7 @@ namespace MiniBankProject
             //Console.WriteLine($"UserLogin result: {ValidUserLogin}"); // Print the result of UserLogin for debugging
             return ValidUserLogin;
 
-        }
+        }*/
 
 
         // valid Admin exist 
