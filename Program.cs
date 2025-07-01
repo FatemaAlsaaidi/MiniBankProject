@@ -242,13 +242,15 @@ namespace MiniBankProject
                         IsSave = false;
                         tries++;
                     }
-                    if (tries == 3)
-                    {
-                        Console.WriteLine("You have exceeded the number of times you are allowed to enter a valid value.");
-                        return;
-                    }
+                    
                 } while (ValidName == false && tries <3);
-                
+                // check if user tries to enter valid name more than 3 times
+                if (tries == 3)
+                {
+                    Console.WriteLine("You have exceeded the number of times you are allowed to enter a valid value.");
+                    Console.ReadLine();
+                    return;
+                }
                 tries = 0;
                 do
                 {
@@ -257,12 +259,12 @@ namespace MiniBankProject
                     string ID = Console.ReadLine();
 
                     // check if number already exist in the list of accounts
-                    bool IDExist = AccountUserNationalID.Contains(ID);
+                    bool IDExist = CheckUserIDExist(ID);
                     if (IDExist)
                     {
                         Console.WriteLine("This National ID already exists. Please enter a different ID.");
+                        IsSave = false;
                         tries++;
-                        continue; // Skip the rest of the loop and prompt for input again
                     }
                     else
                     {
@@ -282,13 +284,17 @@ namespace MiniBankProject
                             IsSave = false;
                             tries++;
                         }
-                        if (tries == 3)
-                        {
-                            Console.WriteLine("You have exceeded the number of times you are allowed to enter a valid value.");
-                            return;
-                        }
+                        
                     }
-                } while (ValidID == false && tries < 3);
+                } while (IsSave == false && tries < 3);
+                // check if user tries to enter valid ID more than 3 times
+                if (tries == 3)
+                {
+                    Console.WriteLine("You have exceeded the number of times you are allowed to enter a valid value.");
+                    Console.ReadLine();
+                    return;
+                }
+                // reset tries to 0 for next validation
                 tries = 0;
                 
                 if (IsSave == true )
