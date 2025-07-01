@@ -1578,7 +1578,7 @@ namespace MiniBankProject
                     for (int i = 0; i < AdminID.Count; i++)
                     {
                         // Create a line of data combining account info separated by commas
-                        string dataLine = $"{AdminAccountNumber[i]},{AdminID[i]},{AdminName[i]}"; //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+                        string dataLine = $"{AdminAccountNumber[i]},{AdminID[i]},{AdminName[i]}"; 
                         // Write the data line into the file
                         writer.WriteLine(dataLine);
                     }
@@ -1592,7 +1592,7 @@ namespace MiniBankProject
                 Console.WriteLine("Error saving file.");
             }
         }
-        // Define a static method that loads account information from a file
+        // Define a static method that loads admin account information from a file
         public static void LoadAdminInformationFromFile()
         {
             try  // Try to execute the code inside the block
