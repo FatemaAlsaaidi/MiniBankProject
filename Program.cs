@@ -44,6 +44,7 @@ namespace MiniBankProject
         static List<string> AdminName = new List<string>();
         static List<string> AdminID = new List<string>();
 
+
         //Requests in queue
         //static Queue<(string name, string nationalID)> createAccountRequests = new Queue<(string, string)>();
         static Queue<string> createAccountRequests = new Queue<string>(); // format: "Name|NationalID"
@@ -1577,7 +1578,7 @@ namespace MiniBankProject
                     for (int i = 0; i < AdminID.Count; i++)
                     {
                         // Create a line of data combining account info separated by commas
-                        string dataLine = $"{AdminAccountNumber[i]},{AdminID[i]},{AdminName[i]}";
+                        string dataLine = $"{AdminAccountNumber[i]},{AdminID[i]},{AdminName[i]}"; //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
                         // Write the data line into the file
                         writer.WriteLine(dataLine);
                     }
@@ -1604,12 +1605,15 @@ namespace MiniBankProject
                     // Exit the method early
                     return;
                 }
+
                 // Clear the list of Admin name
                 AdminName.Clear();
                 // Clear the list of Admin ID
                 AdminID.Clear();
+                // Clear the list of Admin account numbers
+                AdminAccountNumber.Clear(); //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-                
+
                 // Open the file for reading using StreamReader
                 using (StreamReader reader = new StreamReader(AdminInformationFilePath))
                 {
@@ -1624,13 +1628,13 @@ namespace MiniBankProject
                         // Add the account number to the list
                         AdminAccountNumber.Add(accNum);
                         // Add the account username to the list
-                        AdminName.Add(parts[1]);
+                        AdminID.Add(parts[1]); //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
                         // Add the account user national ID to the list
-                        AdminID.Add(parts[2]);
+                        AdminName.Add(parts[2]); //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
                        
                         // Update the last account number if this one is bigger
-                        if (accNum > LastAccountNumber)
-                            LastAccountNumber = accNum;
+                        if (accNum > LastAdminAccountNumber) //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+                            LastAdminAccountNumber = accNum;
                     }
                 }
                 // Inform the user that accounts have been loaded successfully
