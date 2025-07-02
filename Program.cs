@@ -47,6 +47,8 @@ namespace MiniBankProject
         static List<int> AdminAccountNumber = new List<int>();
         static List<string> AdminName = new List<string>();
         static List<string> AdminID = new List<string>();
+        static List<string> AccountAdminHashedPasswords = new List<string>();
+
 
 
         //Requests in queue
@@ -199,7 +201,7 @@ namespace MiniBankProject
                         }
                         else
                         {
-                            Console.WriteLine("Login failed. Please check your National ID.");
+                            Console.WriteLine("Login failed. Please check your National ID or password.");
                         }
                         break;
 
@@ -634,6 +636,7 @@ namespace MiniBankProject
                 Console.ReadLine();
                 return IndexId;
             }
+            tries = 0;
             // Step 2: Find user index
             if (UserExist == true) // or if(UserExist)
             {
@@ -649,7 +652,6 @@ namespace MiniBankProject
                 }
             }
             // Step 3: Validate Password
-            tries = 0;
             bool passwordCorrect = false;
 
             do
@@ -781,10 +783,12 @@ namespace MiniBankProject
             bool ValidID = false;
             bool IsSave = true;
             int tries = 0;
+            string password = "";
+            string hashedPassword = "";
             // Error handling 
             try
             {
-                // Enter User Name Process
+                // 1. Set User Name Process
                 do
                 {
                     // ask user to enter his name
@@ -802,14 +806,15 @@ namespace MiniBankProject
                         IsSave = false;
                         tries++;
                     }
-                    if (tries == 3)
-                    {
-                        Console.WriteLine("You have exceeded the number of times you are allowed to enter a valid value.");
-                        return;
-                    }
+                    
                 } while (ValidName == false && tries < 3);
-
+                if (tries == 3)
+                {
+                    Console.WriteLine("You have exceeded the number of times you are allowed to enter a valid value.");
+                    return;
+                }
                 tries = 0;
+                // 2. Set User ID Process
                 do
                 {
                     // ask user to enter his national ID 
@@ -828,14 +833,41 @@ namespace MiniBankProject
                         IsSave = false;
                         tries++;
                     }
-                    if (tries == 3)
-                    {
-                        Console.WriteLine("You have exceeded the number of times you are allowed to enter a valid value.");
-                        return;
-                    }
+                   
                 } while (ValidID == false && tries < 3);
+                if (tries == 3)
+                {
+                    Console.WriteLine("You have exceeded the number of times you are allowed to enter a valid value.");
+                    return;
+                }
+                tries = 0;
+                // 3. Set Password with masking + hashing
+                do
+                {
+                    Console.Write("Set your password: ");
+                    password = ReadPassword(); // masked input
+                    hashedPassword = HashPassword(password);
+                    if (string.IsNullOrEmpty(hashedPassword))
+                    {
+                        Console.WriteLine("Password cannot be empty. Please try again.");
+                        tries++;
+                    }
+                    else
+                    {
+                        IsSave = true;
+                    }
+                } while (IsSave == false); // Ensure password is not empty
+
+                if (tries == 3)
+                {
+                    Console.WriteLine("You have exceeded the number of times you are allowed to enter a valid value.");
+                    Console.ReadLine();
+                    return;
+                }
+                // reset tries to 0 for next validation
                 tries = 0;
 
+                // Save information in the Admin lists 
                 if (IsSave == true)
                 {
                     bool AlreadyExist = false;
@@ -861,6 +893,7 @@ namespace MiniBankProject
                         AdminAccountNumber.Add(NewAdminAccountNumber);
                         AdminName.Add(UserName);
                         AdminID.Add(UserID);
+                        AccountAdminHashedPasswords.Add(hashedPassword);
                         Console.WriteLine("Request Account Creation successfully submitted.");
                         LastAdminAccountNumber = NewAdminAccountNumber;
                     }
@@ -970,7 +1003,7 @@ namespace MiniBankProject
             }
 
         }
-        // login Admin 
+        // login Admin with ID and password
         public static int AdminLoginWithID()
         {
             int tries = 0;
@@ -987,13 +1020,47 @@ namespace MiniBankProject
                 {
                     tries++;
                 }
-                if (tries == 3)
-                {
-                    Console.WriteLine("You have exceeded the number of times you are allowed to enter a valid ID.");
-                    break;
-                }
+                
             } while (AdminExist == false && tries <3);
-            if (AdminExist == true)
+            if (tries == 3)
+            {
+                Console.WriteLine("You have exceeded the number of times you are allowed to enter a valid ID.");
+            }
+            tries = 0;
+           
+            // Step 3: Validate Password
+            bool passwordCorrect = false;
+
+            do
+            {
+                Console.Write("Enter your password: ");
+                string enteredPassword = ReadPassword(); // masked input
+                string enteredHashed = HashPassword(enteredPassword);
+
+                // Fetch the stored hashed password for this user
+                bool PassExist = AdminExistPassword(enteredHashed);
+               
+                if (PassExist == true)
+                {
+                    passwordCorrect = true;
+                    Console.WriteLine("\nLogin successful.");
+                }
+                else
+                {
+                    Console.WriteLine("\nIncorrect password. Please try again.");
+                    passwordCorrect = false;
+                    tries++;
+                }
+
+            } while (passwordCorrect == false && tries < 3);
+
+            if (passwordCorrect == false)
+            {
+                Console.WriteLine("You have exceeded the allowed attempts for password entry.");
+                IndexId = -1; // login fails
+            }
+
+            if (AdminExist == true && passwordCorrect == true)
             {
                 //loop thriugh items in list
                 for (int i = 0; i < AdminID.Count; i++)
@@ -1724,7 +1791,7 @@ namespace MiniBankProject
                     for (int i = 0; i < AdminID.Count; i++)
                     {
                         // Create a line of data combining account info separated by commas
-                        string dataLine = $"{AdminAccountNumber[i]},{AdminID[i]},{AdminName[i]}"; 
+                        string dataLine = $"{AdminAccountNumber[i]},{AdminID[i]},{AdminName[i]}, {AccountAdminHashedPasswords[i]}"; 
                         // Write the data line into the file
                         writer.WriteLine(dataLine);
                     }
@@ -1757,7 +1824,9 @@ namespace MiniBankProject
                 // Clear the list of Admin ID
                 AdminID.Clear();
                 // Clear the list of Admin account numbers
-                AdminAccountNumber.Clear(); 
+                AdminAccountNumber.Clear();
+                // clear Admin account hashed passwords
+                AccountAdminHashedPasswords.Clear();
 
 
                 // Open the file for reading using StreamReader
@@ -1776,7 +1845,9 @@ namespace MiniBankProject
                         // Add the account username to the list
                         AdminID.Add(parts[1]); 
                         // Add the account user national ID to the list
-                        AdminName.Add(parts[2]); 
+                        AdminName.Add(parts[2]);
+                        // Add the account hashed password to the list
+                        AccountAdminHashedPasswords.Add(parts[3]);
                         // Update the last account number if this one is bigger
                         if (accNum > LastAdminAccountNumber) 
                             LastAdminAccountNumber = accNum;
@@ -1904,7 +1975,7 @@ namespace MiniBankProject
             }
         }
 
-        // vlidate exist password in the list
+        // vlidate exist User password in the list
         static bool ExistPassword(string HashPassword)
         {
             // Loop through the list of registered password
@@ -1918,6 +1989,22 @@ namespace MiniBankProject
             }
             return false; // User password does not exist in the list
         }
+
+        // vlidate exist Admin password in the list
+        static bool AdminExistPassword(string HashPassword)
+        {
+            // Loop through the list of registered password
+            for (int i = 0; i < AccountAdminHashedPasswords.Count; i++)
+            {
+                // Check if the current password in the list matches the user's input
+                if (AccountAdminHashedPasswords[i] == HashPassword)
+                {
+                    return true; // User password exists in the list
+                }
+            }
+            return false; // User password does not exist in the list
+        }
+
 
 
 
