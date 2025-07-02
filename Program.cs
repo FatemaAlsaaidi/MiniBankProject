@@ -1016,7 +1016,7 @@ namespace MiniBankProject
                 Console.WriteLine("Enter You National ID: ");
                 ID = Console.ReadLine(); // Read user input from console
                 AdminExist = AdminLogin(ID);
-                if(AdminExist == false)
+                if(!AdminExist)
                 {
                     tries++;
                 }
@@ -1034,7 +1034,7 @@ namespace MiniBankProject
             do
             {
                 Console.Write("Enter your password: ");
-                string enteredPassword = ReadPassword(); // masked input
+                string enteredPassword = ReadPassword().Trim(); // masked input
                 string enteredHashed = HashPassword(enteredPassword);
 
                 // Fetch the stored hashed password for this user
@@ -1054,7 +1054,7 @@ namespace MiniBankProject
 
             } while (passwordCorrect == false && tries < 3);
 
-            if (passwordCorrect == false)
+            if (tries == 3)
             {
                 Console.WriteLine("You have exceeded the allowed attempts for password entry.");
                 IndexId = -1; // login fails
@@ -1596,7 +1596,7 @@ namespace MiniBankProject
                     for (int i = 0; i < AccountNumbers.Count; i++)
                     {
                         // Create a line of data combining account info separated by commas
-                        string dataLine = $"{AccountNumbers[i]},{AccountUserNames[i]},{AccountUserNationalID[i]},{UserBalances[i]},{AccountUserHashedPasswords[i]}";
+                        string dataLine = $"{AccountNumbers[i]},{AccountUserNames[i]},{AccountUserNationalID[i]},{UserBalances[i]},{AccountUserHashedPasswords[i].Trim()}";// use Trim() to remove any extra spaces
                         Console.WriteLine(dataLine);
                         // Write the data line into the file
                         writer.WriteLine(dataLine);
@@ -1657,7 +1657,7 @@ namespace MiniBankProject
                         // Convert the balance to double and add it to the list
                         UserBalances.Add(Convert.ToDouble(parts[3]));
                         // Add the account hashed password to the list
-                        AccountUserHashedPasswords.Add(parts[4]);
+                        AccountUserHashedPasswords.Add(parts[4].Trim()); // use Trim() to remove any extra spaces
                         // Update the last account number if this one is bigger
                         if (accNum > LastAccountNumber)
                             LastAccountNumber = accNum;
@@ -1847,7 +1847,7 @@ namespace MiniBankProject
                         // Add the account user national ID to the list
                         AdminName.Add(parts[2]);
                         // Add the account hashed password to the list
-                        AccountAdminHashedPasswords.Add(parts[3]);
+                        AccountAdminHashedPasswords.Add(parts[3].Trim()); // add .Trim() to remove any extra spaces when loading the file
                         // Update the last account number if this one is bigger
                         if (accNum > LastAdminAccountNumber) 
                             LastAdminAccountNumber = accNum;
