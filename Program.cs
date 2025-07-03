@@ -15,6 +15,7 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 using System.Security.Cryptography;
 using System.Text;
 using System.IO;
+using System.Numerics;
 
 namespace MiniBankProject
 {
@@ -233,10 +234,13 @@ namespace MiniBankProject
             bool ValidName = true;
             string UserID = "";
             bool ValidID = true;
-            bool IsSave = true;
-            int tries = 0;
             string password = "";
             string hashedPassword = "";
+            string UserPhoneNumber = "";
+            bool IsValidPhone = true;
+            bool IsSave = true;
+            int tries = 0;
+            
             // Error handling 
             try
             {
@@ -327,7 +331,7 @@ namespace MiniBankProject
                     {
                         IsSave = true;
                     }
-                } while (IsSave == false); // Ensure password is not empty
+                } while (IsSave == false && tries < 3); // Ensure password is not empty
 
                 if (tries == 3)
                 {
@@ -335,8 +339,57 @@ namespace MiniBankProject
                     Console.ReadLine();
                     return;
                 }
+                tries = 0;
+                //4. Set Phone Number 
+                do
+                {
+                    Console.WriteLine("Enter your phone number: ");
+                    UserPhoneNumber = Console.ReadLine();
+                    IsValidPhone = IsValidPhoneNumber(UserPhoneNumber);
+                    if (IsValidPhone == false)
+                    {
+                        Console.WriteLine("Invalid phone number format. Please enter a valid phone number.");
+                        tries++;
+                    }
+                    else
+                    {
+                        IsSave = true;
+                    }
+
+
+
+                } while (IsSave == false && tries < 3);
+                if (tries == 3) {
+                    Console.WriteLine("You have exceeded the number of times you are allowed to enter a valid value.");
+                    Console.ReadLine();
+                    return;
+                }
+                tries = 0;
+                // 5. Set Address
+                do
+                {
+                    Console.WriteLine("Enter your address: ");
+                    string UserAddress = Console.ReadLine();
+                    // check if address is valid
+                    bool ValidAddress = StringlettersWithNumbers(UserAddress);
+                    if (ValidAddress == false)
+                    {
+                        Console.WriteLine("Invalid address format. Please enter a valid address.");
+                        tries++;
+                    }
+                    else
+                    {
+                        IsSave = true;
+                    }
+                } while(IsSave == false && tries < 3);
+                if (tries == 3) {
+                    Console.WriteLine("You have exceeded the number of times you are allowed to enter a valid value.");
+                    Console.ReadLine();
+                    return;
+                }
                 // reset tries to 0 for next validation
                 tries = 0;
+                // 6. Save information in the User lists
                 if (IsSave == true )
                 {
                     bool AlreadyRequested = false;
@@ -362,7 +415,7 @@ namespace MiniBankProject
                     else
                     {
                         // save request in queue
-                        string request = UserName + "|" + UserID + "|" + hashedPassword;
+                        string request = UserName + "|" + UserID + "|" + hashedPassword + "|" + UserPhoneNumber;
                         createAccountRequests.Enqueue(request);
                         Console.WriteLine("Request Account Creation successfully submitted.");
                     }
@@ -1236,8 +1289,7 @@ namespace MiniBankProject
             }
         }
 
-        // ************************************************* Validation **********************************************
-        // string validation 
+        // ************************************************* String Validation **********************************************
         public static bool stringOnlyLetterValidation(string word)
         {
             bool IsValid = true;
@@ -1266,8 +1318,6 @@ namespace MiniBankProject
 
             return IsValid;
         }
-
-        // validate string which letter with number
         public static bool StringlettersWithNumbers(string word)
         {
             bool IsValid = true;
@@ -1285,6 +1335,28 @@ namespace MiniBankProject
 
             return IsValid;
         }
+
+        //******************************************** Phone number Validation ******************************************
+        public static bool IsValidPhoneNumber(string phoneInput)
+        {
+            if (string.IsNullOrWhiteSpace(phoneInput))
+            {
+                Console.WriteLine("Phone number cannot be empty.");
+                return false;
+            }
+            if (!phoneInput.All(char.IsDigit))
+            {
+                Console.WriteLine("Phone number must contain digits only.");
+                return false;
+            }
+            if (phoneInput.Length != 8)
+            {
+                Console.WriteLine("Phone number must be exactly 8 digits.");
+                return false;
+            }
+            return true;
+        }
+
 
         // ===================================== User National ID =============================
         public static int EnterNationalID()
