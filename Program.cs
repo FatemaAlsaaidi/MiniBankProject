@@ -16,6 +16,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.IO;
 using System.Numerics;
+using System.Transactions;
 
 namespace MiniBankProject
 {
@@ -27,8 +28,9 @@ namespace MiniBankProject
         const string AccountsFilePath = "accounts.txt";
         const string ReviewsFilePath = "reviews.txt";
         const string RequestsFilePath = "requests.txt";
-        const string InAcceptRequestsFilePath = "InRequests.txt";
+        const string CancelcreateAccountRequestsFilePath = "CancleRequests.txt";
         const string AdminInformationFilePath = "Admin.txt";
+        const string MonthlyStatementGeneratorFilePath = "Statement_Acc12345_2025-07.txt";
         // generate ID number for every account 
         static int LastAccountNumber = 0;
         static int IndexID = 0;
@@ -42,6 +44,9 @@ namespace MiniBankProject
         static List<string> AccountUserHashedPasswords = new List<string>();
         static List<string> UserPhoneNumbers = new List<string>();
         static List<string> UserAddresses = new List<string>();
+
+        // User Transactions History
+        static List<List<string>> UserTransactions = new List<List<string>>(); // MonthlyStatementGenerator
 
 
         // generate ID number for Admin account 
@@ -59,7 +64,7 @@ namespace MiniBankProject
         //static Queue<(string name, string nationalID)> createAccountRequests = new Queue<(string, string)>();
         static Queue<string> createAccountRequests = new Queue<string>(); // format: "Name|NationalID"
 
-        static Queue<string> InAcceptcreateAccountRequests = new Queue<string>(); // format: "Name|NationalID"
+        static Queue<string> CancelcreateAccountRequests = new Queue<string>(); // format: "Name|NationalID"
 
         //review in stack
         static Stack<string> UserReviewsStack = new Stack<string>();
@@ -74,9 +79,10 @@ namespace MiniBankProject
             Console.ReadLine();
             LoadAccountsInformationFromFile();
             LoadReviews();
-            LoadRequests();
+            LoadAcceptedRequests();
             LoadAdminInformationFromFile();
-            LoadInAcceptRequests();
+            LoadCancleRequests();
+            
             bool UsersSystemMenu = true;
             // while loop to display the mnue ewhile the flag is true
             while (UsersSystemMenu)
@@ -104,9 +110,10 @@ namespace MiniBankProject
                     case '0':
                         SaveAccountsInformationToFile();
                         SaveReviews();
-                        SaveRequestsToFaile();
+                        SaveAccepteRequestsToFaile();
                         SaveAdminInformationToFile();
-                        SaveInRequestsToFaile();
+                        SaveCancleRequestsToFaile();
+                        
                         UsersSystemMenu = false;
                         break;
                     // by default case to display error choic message 
@@ -451,6 +458,7 @@ namespace MiniBankProject
                 Console.WriteLine("5. Transfer Money");
                 Console.WriteLine("6. Undo Last Complaint");
                 Console.WriteLine("7. Update Phone Number and Address");
+                Console.WriteLine("8. View Transaction History");
                 Console.WriteLine("0. Return to Main Menu");
                 Console.Write("Select option: ");
                 char userChoice = Console.ReadKey().KeyChar;
@@ -514,6 +522,13 @@ namespace MiniBankProject
                     case '7':
                         UpdatePhoneAndAddress(IndexID); // If user exists, proceed with update
                         Console.ReadLine(); // Wait for user input before continuing
+                        break;
+                    // case to View Transaction History
+                    case '8':
+                        GenerateMonthlyStatement(IndexID);
+                        Console.ReadLine();
+
+
                         break;
                     // case to exist from user menu and Return to Main Menu 
                     case '0':
@@ -622,6 +637,15 @@ namespace MiniBankProject
                         PrintReceipt(transactionType: "Deposit", amount: FinalDepositAmount, balance: UserBalances[IndexID]);
                         // Set the flag to true to exit the loop.
                         IsDeposit = true;
+                        Console.WriteLine($"Successfully deposited {FinalDepositAmount} to your account.");
+                        Console.WriteLine($"Your Current Balance is {UserBalances[IndexID]}");
+                        // Print the receipt for the deposit transaction.
+                        PrintReceipt(transactionType: "Deposit", amount: FinalDepositAmount, balance: UserBalances[IndexID]);
+                        // Record the transaction in the user's transaction history.
+                        string transactionRecord = $"{DateTime.Now:yyyy-MM-dd},Deposit,{FinalDepositAmount},{UserBalances[IndexID]}";
+                        UserTransactions[IndexID].Add(transactionRecord);
+                        // Save the user's transactions to a file.
+                        SaveUserTransactionsToFile();
                         // Exit the method (if inside a method).
                         return;
 
@@ -678,8 +702,12 @@ namespace MiniBankProject
                             // Update the user's balance by adding the deposit amount.
                             UserBalances[IndexID] = UserBalances[IndexID] - FinalwithdrawAmount;
                             Console.WriteLine($"Successfully withdraw");
-                            PrintReceipt(transactionType: "Withdraw", amount: FinalwithdrawAmount, balance: UserBalances[IndexID]);
-
+                            Console.WriteLine($"Your Current Balance is {UserBalances[IndexID]}");
+                            // Record the transaction in the user's transaction history.
+                            PrintReceipt(transactionType: "Withdraw", amount: FinalwithdrawAmount, balance: UserBalances[IndexID]);         
+                            // Record the transaction in the user's transaction history.
+                            string transactionRecord = $"{DateTime.Now:yyyy-MM-dd},Withdraw,{FinalwithdrawAmount},{UserBalances[IndexID]}";
+                            UserTransactions[IndexID].Add(transactionRecord);
                             // Set the flag to true to exit the loop.
                             IsWithdraw = true;
                         }
@@ -795,6 +823,14 @@ namespace MiniBankProject
                             UserBalances[UserIndexID2] += FinalTransferAmount;
                             Console.WriteLine($"Successfully transferred {FinalTransferAmount} from Account {AccountNumbers[UserIndexID]} to Account {AccountNumbers[UserIndexID2]}");
                             Console.WriteLine($"Your Current Balance is {UserBalances[UserIndexID]}");
+                            // Record the transaction in the sender's transaction history.
+                            string transactionRecord = $"{DateTime.Now:yyyy-MM-dd},Trsnsfer From,{FinalTransferAmount},{UserBalances[UserIndexID]},-";
+                            UserTransactions[UserIndexID].Add(transactionRecord);
+
+                            // transection record for the receiver
+                            string transactionRecord2 = $"{DateTime.Now:yyyy-MM-dd},Trsnsfer To,{FinalTransferAmount},-,{UserBalances[UserIndexID2]}";
+                            UserTransactions[UserIndexID2].Add(transactionRecord2);
+
                             IsTransfer = true; // Set flag to true to exit loop.
                         }
                         else
@@ -838,6 +874,63 @@ namespace MiniBankProject
             Console.WriteLine($"New Balance: {balance}");
             Console.WriteLine("---------------------------\n");
         }
+
+        // Generate Monthly Statement
+        public static void GenerateMonthlyStatement(int IndexID)
+        {
+            LoadUserTransactionsFromFile();
+
+            Console.WriteLine("Enter year (e.g., 2025): ");
+            string yearInput = Console.ReadLine();
+            Console.WriteLine("Enter month (1-12): ");
+            string monthInput = Console.ReadLine();
+
+            if (!int.TryParse(yearInput, out int year) || !int.TryParse(monthInput, out int month) ||
+                month < 1 || month > 12)
+            {
+                Console.WriteLine("Invalid year or month input.");
+                return;
+            }
+
+            var transactions = UserTransactions[IndexID]
+                .Where(t =>
+                {
+                    var parts = t.Split(',');
+                    if (DateTime.TryParse(parts[0], out DateTime date))
+                    {
+                        return date.Year == year && date.Month == month;
+                    }
+                    return false;
+                }).ToList();
+
+            if (transactions.Count == 0)
+            {
+                Console.WriteLine("No transactions found for the selected month/year.");
+                return;
+            }
+
+            string fileName = $"Statement_Acc{AccountNumbers[IndexID]}_{year}-{month:D2}.txt";
+
+            try
+            {
+                using (StreamWriter writer = new StreamWriter(fileName))
+                {
+                    writer.WriteLine($"Monthly Statement for Account: {AccountNumbers[IndexID]}");
+                    writer.WriteLine($"Period: {year}-{month:D2}");
+                    writer.WriteLine("Date,Type,Amount,Balance After Transaction");
+                    foreach (var line in transactions)
+                    {
+                        writer.WriteLine(line);
+                    }
+                }
+                Console.WriteLine($"Statement saved successfully to {fileName}");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Error saving statement: {e.Message}");
+            }
+        }
+
 
         // ===================== Admin Features Function ==========================
         // Admin create account 
@@ -1246,23 +1339,19 @@ namespace MiniBankProject
                     Console.WriteLine($"Account created for {UserName} with Account Number: {NewAccountIDNumber}, Phone Number: {UserPhoneNumber} and address: {UserAddress}");
                     // display message to the user that account created successfully
                     Console.WriteLine("Account Accepted successfully.");
+                    //Since a new user was added,
+                    // You must also add an empty transaction list for this new user at the same index.
+                    UserTransactions.Add(new List<string>()); 
+
                     LastAccountNumber = NewAccountIDNumber;
+
                 }
                 else
                 {
                     Console.WriteLine("Account Dose not accept!");
                     string InAcceptRequest = request;
-                    InAcceptcreateAccountRequests.Enqueue(InAcceptRequest);
+                    CancelcreateAccountRequests.Enqueue(InAcceptRequest);
                 }
-
-                //Console.WriteLine("Do you want to exist from this page? (y/n)");
-                //char choice2 = Console.ReadKey().KeyChar;
-                //if (choice == 'y' || choice == 'Y')
-                //{
-                //    string InAcceptRequest2 = InAcceptcreateAccountRequests.Dequeue();
-                //    createAccountRequests.Enqueue(InAcceptRequest2);
-
-                //}
 
             }
             catch
@@ -1670,10 +1759,7 @@ namespace MiniBankProject
         }
 
         
-        // ************************* saved files and loaded them ****************************
-        //1. save and load Account information
-
-        // Define a static method to save account information to a file
+        // ************************* saved files and loaded User and Admin Account Information  ****************************
         public static void SaveAccountsInformationToFile()
         {
             try // Try to execute the code inside the block
@@ -1700,7 +1786,6 @@ namespace MiniBankProject
                 Console.WriteLine("Error saving file.");
             }
         }
-        // Define a static method that loads account information from a file
         public static void LoadAccountsInformationFromFile()
         {
             try  // Try to execute the code inside the block
@@ -1772,111 +1857,6 @@ namespace MiniBankProject
             }
 
         }
-
-        // 2. save and load reviews 
-        // Define a static method to save user reviews to a file 
-        public static void SaveReviews()
-        {
-            try // Try to execute the code inside the block
-            {
-                // Open the file for writing 
-                using (StreamWriter writer = new StreamWriter(ReviewsFilePath))
-                {
-                    // Loop through all reviews
-                    foreach (var review in UserReviewsStack)
-                    {
-                        // Write the review line into the file
-                        writer.WriteLine(review);
-                    }
-                }
-            }
-            catch // // If any error occurs during saving
-            {
-                // Inform the user that there was an error saving the file
-                Console.WriteLine("Error saving reviews.");
-            }
-        }
-        // Define a static method to load user reviews to a file 
-        public static void LoadReviews()
-        {
-            try // Try to execute the code inside the block
-            {
-                // Check if the accounts file does not exist
-                if (!File.Exists(ReviewsFilePath)) return;
-                // Open the file for reading using StreamReader
-                using (StreamReader reader = new StreamReader(ReviewsFilePath))
-                {
-                    // declare line variable to hold every line 
-                    string line;
-                    // Read each line until the end of the file
-                    while ((line = reader.ReadLine()) != null)
-                    {
-                        // load the value of line in  UserReviewsStack
-                        UserReviewsStack.Push(line);
-                    }
-                }
-            }
-            catch // If any error happens
-            {
-                // Inform the user that there was an error loading the file
-                Console.WriteLine("Error loading reviews.");
-            }
-        }
-
-        // 3. save and load reqest 
-        //Define a static method to save user requests to a file
-        public static void SaveRequestsToFaile()
-        {
-            try // Try to execute the code inside the block
-            {
-                // Open the file for writing 
-                using (StreamWriter writer = new StreamWriter(RequestsFilePath))
-                {
-                    // Loop through all reviews
-                    foreach (var request in createAccountRequests)
-                    {
-                        // Write the review line into the file
-                        writer.WriteLine(request);
-                    }
-                }
-                // Inform the user that accounts were saved successfully
-                Console.WriteLine("requests saved successfully.");
-            }
-            catch // If any error occurs during saving
-            {
-                // Inform the user that there was an error saving the file
-                Console.WriteLine("Error saving request to file.");
-            }
-        }
-        // Define a static method to load user requests to a file 
-        public static void LoadRequests()
-        {
-            try // Try to execute the code inside the block
-            {
-                // Check if the accounts file does not exist
-                if (!File.Exists(RequestsFilePath)) return;
-                // Open the file for reading using StreamReader
-                using (StreamReader reader = new StreamReader(RequestsFilePath))
-                {
-                    // declare line variable to hold every line 
-                    string line;
-                    // Read each line until the end of the file
-                    while ((line = reader.ReadLine()) != null)
-                    {
-                        // load the value of line in  UserReviewsStack
-                        createAccountRequests.Enqueue(line);
-                    }
-                }
-            }
-            catch // If any error happens
-            {
-                // Inform the user that there was an error loading the file
-                Console.WriteLine("Error loading request.");
-            }
-        }
-
-        //4. save and load admin information 
-        // Define a static method to save account information to a file
         public static void SaveAdminInformationToFile()
         {
             try // Try to execute the code inside the block
@@ -1888,7 +1868,7 @@ namespace MiniBankProject
                     for (int i = 0; i < AdminID.Count; i++)
                     {
                         // Create a line of data combining account info separated by commas
-                        string dataLine = $"{AdminAccountNumber[i]},{AdminID[i]},{AdminName[i]}, {AccountAdminHashedPasswords[i]}"; 
+                        string dataLine = $"{AdminAccountNumber[i]},{AdminID[i]},{AdminName[i]}, {AccountAdminHashedPasswords[i]}";
                         // Write the data line into the file
                         writer.WriteLine(dataLine);
                     }
@@ -1902,7 +1882,6 @@ namespace MiniBankProject
                 Console.WriteLine("Error saving file.");
             }
         }
-        // Define a static method that loads admin account information from a file
         public static void LoadAdminInformationFromFile()
         {
             try  // Try to execute the code inside the block
@@ -1940,13 +1919,13 @@ namespace MiniBankProject
                         // Add the account number to the list
                         AdminAccountNumber.Add(accNum);
                         // Add the account username to the list
-                        AdminID.Add(parts[1]); 
+                        AdminID.Add(parts[1]);
                         // Add the account user national ID to the list
                         AdminName.Add(parts[2]);
                         // Add the account hashed password to the list
                         AccountAdminHashedPasswords.Add(parts[3].Trim()); // add .Trim() to remove any extra spaces when loading the file
                         // Update the last account number if this one is bigger
-                        if (accNum > LastAdminAccountNumber) 
+                        if (accNum > LastAdminAccountNumber)
                             LastAdminAccountNumber = accNum;
                     }
                 }
@@ -1963,40 +1942,36 @@ namespace MiniBankProject
 
         }
 
-        // 4. save and load inaccept reqest 
-        //Define a static method to save user requests to a file
-        public static void SaveInRequestsToFaile()
+        // ************************************ User Reviews Management ***************************************
+        public static void SaveReviews()
         {
             try // Try to execute the code inside the block
             {
                 // Open the file for writing 
-                using (StreamWriter writer = new StreamWriter(InAcceptRequestsFilePath))
+                using (StreamWriter writer = new StreamWriter(ReviewsFilePath))
                 {
                     // Loop through all reviews
-                    foreach (var InAcceptrequest in InAcceptcreateAccountRequests)
+                    foreach (var review in UserReviewsStack)
                     {
-                        // Write the inAccept request line into the file
-                        writer.WriteLine(InAcceptrequest);
+                        // Write the review line into the file
+                        writer.WriteLine(review);
                     }
                 }
-                // Inform the user that accounts were saved successfully
-                Console.WriteLine("Inrequests saved successfully.");
             }
-            catch // If any error occurs during saving
+            catch // // If any error occurs during saving
             {
                 // Inform the user that there was an error saving the file
-                Console.WriteLine("Error saving InAcceptrequest to file.");
+                Console.WriteLine("Error saving reviews.");
             }
         }
-        // Define a static method to load user requests to a file 
-        public static void LoadInAcceptRequests()
+        public static void LoadReviews()
         {
             try // Try to execute the code inside the block
             {
                 // Check if the accounts file does not exist
-                if (!File.Exists(InAcceptRequestsFilePath)) return;
+                if (!File.Exists(ReviewsFilePath)) return;
                 // Open the file for reading using StreamReader
-                using (StreamReader reader = new StreamReader(InAcceptRequestsFilePath))
+                using (StreamReader reader = new StreamReader(ReviewsFilePath))
                 {
                     // declare line variable to hold every line 
                     string line;
@@ -2004,7 +1979,104 @@ namespace MiniBankProject
                     while ((line = reader.ReadLine()) != null)
                     {
                         // load the value of line in  UserReviewsStack
-                        InAcceptcreateAccountRequests.Enqueue(line);
+                        UserReviewsStack.Push(line);
+                    }
+                }
+            }
+            catch // If any error happens
+            {
+                // Inform the user that there was an error loading the file
+                Console.WriteLine("Error loading reviews.");
+            }
+        }    
+        // ************************************ Accept Cancle reqest creation account ***************************************
+        public static void SaveAccepteRequestsToFaile()
+        {
+            try // Try to execute the code inside the block
+            {
+                // Open the file for writing 
+                using (StreamWriter writer = new StreamWriter(RequestsFilePath))
+                {
+                    // Loop through all reviews
+                    foreach (var request in createAccountRequests)
+                    {
+                        // Write the review line into the file
+                        writer.WriteLine(request);
+                    }
+                }
+                // Inform the user that accounts were saved successfully
+                Console.WriteLine("requests saved successfully.");
+            }
+            catch // If any error occurs during saving
+            {
+                // Inform the user that there was an error saving the file
+                Console.WriteLine("Error saving request to file.");
+            }
+        }
+        public static void LoadAcceptedRequests()
+        {
+            try // Try to execute the code inside the block
+            {
+                // Check if the accounts file does not exist
+                if (!File.Exists(RequestsFilePath)) return;
+                // Open the file for reading using StreamReader
+                using (StreamReader reader = new StreamReader(RequestsFilePath))
+                {
+                    // declare line variable to hold every line 
+                    string line;
+                    // Read each line until the end of the file
+                    while ((line = reader.ReadLine()) != null)
+                    {
+                        // load the value of line in  UserReviewsStack
+                        createAccountRequests.Enqueue(line);
+                    }
+                }
+            }
+            catch // If any error happens
+            {
+                // Inform the user that there was an error loading the file
+                Console.WriteLine("Error loading request.");
+            }
+        }
+        public static void SaveCancleRequestsToFaile()
+        {
+            try // Try to execute the code inside the block
+            {
+                // Open the file for writing 
+                using (StreamWriter writer = new StreamWriter(CancelcreateAccountRequestsFilePath))
+                {
+                    // Loop through all reviews
+                    foreach (var InAcceptrequest in CancelcreateAccountRequests)
+                    {
+                        // Write the inAccept request line into the file
+                        writer.WriteLine(InAcceptrequest);
+                    }
+                }
+                // Inform the user that accounts were saved successfully
+                Console.WriteLine("Cancled requests saved successfully.");
+            }
+            catch // If any error occurs during saving
+            {
+                // Inform the user that there was an error saving the file
+                Console.WriteLine("Error saving Cancled requests to file.");
+            }
+        }
+        public static void LoadCancleRequests()
+        {
+            try // Try to execute the code inside the block
+            {
+                // Check if the accounts file does not exist
+                if (!File.Exists(CancelcreateAccountRequestsFilePath)) return;
+                // Open the file for reading using StreamReader
+                using (StreamReader reader = new StreamReader(CancelcreateAccountRequestsFilePath))
+                {
+                    // declare line variable to hold every line 
+                    string line;
+                    // Read each line until the end of the file
+                    while ((line = reader.ReadLine()) != null)
+                    {
+                        // load the value of line in  UserReviewsStack
+                        CancelcreateAccountRequests.Enqueue(line);
                     }
                 }
             }
@@ -2012,6 +2084,59 @@ namespace MiniBankProject
             {
                 // Inform the user that there was an error loading the file
                 Console.WriteLine("Error loading InAccept request.");
+            }
+        }
+
+        // ************************************ save and load User Transactions ***************************************
+        public static void SaveUserTransactionsToFile()
+        {
+            try // Try to execute the code inside the block
+            {
+                // Open the file for writing 
+                using (StreamWriter writer = new StreamWriter(MonthlyStatementGeneratorFilePath))
+                {
+                    // Loop through all user transactions by index
+                    for (int i = 0; i < UserTransactions.Count; i++)
+                    {
+                        // Write each transaction list as a single line in the file
+                        writer.WriteLine(string.Join(";", UserTransactions[i]));
+                    }
+                }
+                // Inform the user that transactions were saved successfully
+                Console.WriteLine("User transactions saved successfully.");
+            }
+            catch // If any error occurs during saving
+            {
+                // Inform the user that there was an error saving the file
+                Console.WriteLine("Error saving user transactions to file.");
+            }
+        }
+        public static void LoadUserTransactionsFromFile()
+        {
+            try // Try to execute the code inside the block
+            {
+                // Check if the transactions file does not exist
+                if (!File.Exists(MonthlyStatementGeneratorFilePath)) return;
+                // Clear the list of user transactions
+                UserTransactions.Clear();
+                // Open the file for reading using StreamReader
+                using (StreamReader reader = new StreamReader(MonthlyStatementGeneratorFilePath))
+                {
+                    string line; // Declare a variable to hold each line
+                    // Read each line until the end of the file
+                    while ((line = reader.ReadLine()) != null)
+                    {
+                        // Split the line by semicolon and add it as a new transaction list
+                        UserTransactions.Add(line.Split(';').ToList());
+                    }
+                }
+                // Inform the user that transactions have been loaded successfully
+                Console.WriteLine("User transactions loaded successfully.");
+            }
+            catch // If any error happens
+            {
+                // Inform the user that there was an error loading the file
+                Console.WriteLine("Error loading user transactions from file.");
             }
         }
 
