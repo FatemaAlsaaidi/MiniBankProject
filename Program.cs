@@ -14,6 +14,7 @@ using System.Xml.Linq;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using System.Security.Cryptography;
 using System.Text;
+using System.IO;
 
 namespace MiniBankProject
 {
@@ -1580,6 +1581,10 @@ namespace MiniBankProject
                 UserBalances.Clear();
                 // Clear the list of account hashed passwords
                 AccountUserHashedPasswords.Clear();
+                // Clear the list of user phone numbers
+                UserPhoneNumbers.Clear();
+                // Clear the list of user addresses
+                UserAddresses.Clear();
                 // Clear the list of transactions
                 //transactions.Clear();
 
@@ -1604,6 +1609,10 @@ namespace MiniBankProject
                         UserBalances.Add(Convert.ToDouble(parts[3]));
                         // Add the account hashed password to the list
                         AccountUserHashedPasswords.Add(parts[4].Trim()); // use Trim() to remove any extra spaces
+                        // Add the user phone number to the list
+                        UserPhoneNumbers.Add(parts[5]);
+                        // Add the user address to the list
+                        UserAddresses.Add(parts[6]);
                         // Update the last account number if this one is bigger
                         if (accNum > LastAccountNumber)
                             LastAccountNumber = accNum;
