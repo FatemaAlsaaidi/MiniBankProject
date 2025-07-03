@@ -1098,15 +1098,15 @@ namespace MiniBankProject
         public static void ViewAllAccounts()
         {
             
-            Console.WriteLine($"Account ID {"|"} User Name {"|"} National ID {"|"} Balance Amount");
             //iteration for loop all index values in lists
+            Console.WriteLine($"Account ID | User Name | National ID | Balance | Phone | Address");
+
             for (int i = 0; i < AccountUserNationalID.Count; i++)
             {
                 //display list values for every index
-                Console.WriteLine($"{AccountNumbers[i]}\t{"|"}{AccountUserNames[i]}\t{"|"}{AccountUserNationalID[i]}\t{"|"}{UserBalances[i]}");
-
+                Console.WriteLine($"{AccountNumbers[i]} | {AccountUserNames[i]} | {AccountUserNationalID[i]} | {UserBalances[i]} | {UserPhoneNumbers[i]} | {UserAddresses[i]}");
             }
-            
+
         }
         // View Reviews Function 
         public static void ViewReviews()
