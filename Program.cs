@@ -139,12 +139,15 @@ namespace MiniBankProject
                         break;
                     // case to Deposit
                     case '2':
-                        IndexID = UserLoginWithID();
+                        IndexID = UserLoginWith_ID_Password();
+                        Console.ReadLine();
+
                         if (IndexID != -1)
                         {
                             Console.WriteLine("Login successfully");
-                            Console.ReadLine();
                             UserMenuOperations(IndexID);
+                            Console.ReadLine();
+
                         }
                         else
                         {
@@ -223,6 +226,7 @@ namespace MiniBankProject
         public static void RequestAccountCreation()
         {
             string UserName = "";
+            string name = "";
             bool ValidName = true;
             string UserID = "";
             bool ValidID = true;
@@ -238,7 +242,7 @@ namespace MiniBankProject
                 {
                     // ask user to enter his name
                     Console.WriteLine("Enter Your Name: ");
-                    string name = Console.ReadLine();
+                    name = Console.ReadLine();
                     // valid the name input 
                     ValidName = stringOnlyLetterValidation(name);
                     if(ValidName== true)
@@ -424,7 +428,7 @@ namespace MiniBankProject
                     // Transfer Money
                     case '5':
                         // Ask user to enter the National ID of the account to transfer money to
-                        int UserIndexID2 = UserLoginWithID();
+                        int UserIndexID2 = EnterUserID();
                         if (UserIndexID2 != -1 && UserIndexID2 != IndexID) // when user login to its account by accountID number, this number save in value IndexID which decalre in "internal calss program" so when want to transer from its account to another account, no need to enter its accountIDNumber agine it save temberary in variable "IndexID"
                         {
                             Transfer(IndexID, UserIndexID2); // If user exists, proceed with transfer
@@ -609,80 +613,20 @@ namespace MiniBankProject
             }
         }
         // login user ID and password 
-        public static int UserLoginWithID()
+        public static int UserLoginWith_ID_Password()
         {
-            int tries = 0;
-            int IndexId = -1;
-            bool UserExist = false;
-            string ID = "";
-            // Step 1: Verify National ID
-            do
+            int UserIndex = -1;
+            int indexID = EnterUserID();
+            if (indexID != -1)
             {
-                // Prompt user to enter their National ID
-                Console.WriteLine("Enter User National ID: ");
-                ID = Console.ReadLine(); // Read user input from console                           
-                // valid user exist
-                UserExist = CheckUserIDExist(ID);
-                if(UserExist == false) // or if(!UserExist)
-                {
-                    Console.WriteLine("User with this ID does not exist. Please try again.");
-                    tries++;
-                }
-
-            } while (UserExist == false && tries <3);
-            if (tries == 3)
-            {
-                Console.WriteLine("You have exceeded the number of times you are allowed to enter a valid ID.");
-                Console.ReadLine();
-                return IndexId;
+                UserIndex = EnterUserPassword(indexID);
             }
-            tries = 0;
-            // Step 2: Find user index
-            if (UserExist == true) // or if(UserExist)
+            else
             {
-                //loop thriugh items in list
-                for (int i = 0; i < AccountUserNationalID.Count; i++)
-                {
-                    //check if Input exist in the list 
-                    if (AccountUserNationalID[i] == ID)
-                    {
-                        // Store the index of the user with the matching ID.
-                        IndexId = i;
-                    }
-                }
+                Console.WriteLine("Login failed. Please check your National ID.");
+                UserIndex = - 1; // Return -1 to indicate login failure
             }
-            // Step 3: Validate Password
-            bool passwordCorrect = false;
-
-            do
-            {
-                Console.Write("Enter your password: ");
-                string enteredPassword = ReadPassword(); // masked input
-                string enteredHashed = HashPassword(enteredPassword);
-
-                // Fetch the stored hashed password for this user
-                bool PassExist = ExistPassword(enteredHashed);
-
-                if (PassExist == true)
-                {
-                    passwordCorrect = true;
-                    Console.WriteLine("\nLogin successful.");
-                }
-                else
-                {
-                    Console.WriteLine("\nIncorrect password. Please try again.");
-                    tries++;
-                }
-
-            } while (!passwordCorrect && tries < 3);
-
-            if (!passwordCorrect)
-            {
-                Console.WriteLine("You have exceeded the allowed attempts for password entry.");
-                IndexId = -1; // login fails
-            }
-
-            return IndexId;
+            return UserIndex;
         }
         /*
          Transfer money
@@ -1939,7 +1883,49 @@ namespace MiniBankProject
         }
 
 
-        // ************************************* Methods for password validation *************************************
+        // ************************************* Methods for password *************************************
+        public static int EnterUserPassword(int Index_ID)
+        {
+            int tries = 0;
+            int Indexpassword = -1;
+            bool UserExist = false;
+            // Step 3: Validate Password
+            bool passwordCorrect = false;
+
+            do
+            {
+                Console.Write("Enter your password: ");
+                string enteredPassword = ReadPassword(); // masked input
+                string enteredHashed = HashPassword(enteredPassword);
+
+                // Fetch the stored hashed password for this user
+                bool PassExist = ExistPassword(enteredHashed);
+
+                if (PassExist == true)
+                {
+                    passwordCorrect = true;
+
+                }
+                else
+                {
+                    Console.WriteLine("\nIncorrect password. Please try again.");
+                    tries++;
+                }
+
+            } while (!passwordCorrect && tries < 3);
+
+            if (tries == 3)
+            {
+                Console.WriteLine("You have exceeded the allowed attempts for password entry.");
+                Indexpassword = -1; // login fails
+            }
+
+            if (passwordCorrect == true)
+            {
+                Indexpassword = Index_ID;
+            }
+            return Indexpassword;
+        }
         // Read password from console without echoing characters
         static string ReadPassword()
         {
@@ -2005,7 +1991,7 @@ namespace MiniBankProject
             return false; // User password does not exist in the list
         }
 
-        // ********************************************** Enter User ID ****************************
+        // ********************************************** Methods for User ID ****************************
         public static int EnterUserID()
         {
             int tries = 0;
