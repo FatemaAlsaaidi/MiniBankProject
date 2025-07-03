@@ -1542,7 +1542,7 @@ namespace MiniBankProject
                     for (int i = 0; i < AccountNumbers.Count; i++)
                     {
                         // Create a line of data combining account info separated by commas
-                        string dataLine = $"{AccountNumbers[i]},{AccountUserNames[i]},{AccountUserNationalID[i]},{UserBalances[i]},{AccountUserHashedPasswords[i].Trim()}";// use Trim() to remove any extra spaces
+                        string dataLine = $"{AccountNumbers[i]},{AccountUserNames[i]},{AccountUserNationalID[i]},{UserBalances[i]},{AccountUserHashedPasswords[i].Trim()},{UserPhoneNumbers[i]},{UserAddresses[i]}";// use Trim() with AccountUserHashedPasswords[i] to remove any extra spaces
                         //Console.WriteLine(dataLine);
                         // Write the data line into the file
                         writer.WriteLine(dataLine);
