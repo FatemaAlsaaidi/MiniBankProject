@@ -38,6 +38,8 @@ namespace MiniBankProject
         static List<string> AccountUserNationalID = new List<string>();
         static List<double> UserBalances = new List<double>();
         static List<string> AccountUserHashedPasswords = new List<string>();
+        static List<string> UserPhoneNumbers = new List<string>();
+        static List<string> UserAddresses = new List<string>();
 
 
         // generate ID number for Admin account 
