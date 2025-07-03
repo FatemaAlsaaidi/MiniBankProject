@@ -238,13 +238,16 @@ namespace MiniBankProject
             string hashedPassword = "";
             string UserPhoneNumber = "";
             bool IsValidPhone = true;
+            string UserAddress = "";
+            // Initialize a boolean flag to control the save process.
+            bool IsValidAddress = true;
             bool IsSave = true;
             int tries = 0;
             
             // Error handling 
             try
             {
-                // Enter User Name Process
+                // 1. Enter User Name Process
                 do
                 {
                     // ask user to enter his name
@@ -272,6 +275,7 @@ namespace MiniBankProject
                     return;
                 }
                 tries = 0;
+                // 2. Enter User ID Process
                 do
                 {
                     // ask user to enter his national ID 
@@ -369,12 +373,13 @@ namespace MiniBankProject
                 do
                 {
                     Console.WriteLine("Enter your address: ");
-                    string UserAddress = Console.ReadLine();
+                    UserAddress = Console.ReadLine();
                     // check if address is valid
-                    bool ValidAddress = StringlettersWithNumbers(UserAddress);
-                    if (ValidAddress == false)
+                    IsValidAddress = StringlettersWithNumbers(UserAddress);
+                    if (IsValidAddress == false)
                     {
                         Console.WriteLine("Invalid address format. Please enter a valid address.");
+                        IsSave = false;
                         tries++;
                     }
                     else
@@ -415,7 +420,7 @@ namespace MiniBankProject
                     else
                     {
                         // save request in queue
-                        string request = UserName + "|" + UserID + "|" + hashedPassword + "|" + UserPhoneNumber;
+                        string request = UserName + "|" + UserID + "|" + hashedPassword + "|" + UserPhoneNumber + "|" + UserAddress;
                         createAccountRequests.Enqueue(request);
                         Console.WriteLine("Request Account Creation successfully submitted.");
                     }
@@ -444,7 +449,8 @@ namespace MiniBankProject
                 Console.WriteLine("3. View Balance");
                 Console.WriteLine("4. Submit Review/Complaint");
                 Console.WriteLine("5. Transfer Money");
-                Console.WriteLine("6. Undo Last Complaint"); 
+                Console.WriteLine("6. Undo Last Complaint");
+                Console.WriteLine("7. Update Phone Number and Address");
                 Console.WriteLine("0. Return to Main Menu");
                 Console.Write("Select option: ");
                 char userChoice = Console.ReadKey().KeyChar;
@@ -504,6 +510,11 @@ namespace MiniBankProject
                         UndoLastComplaint();
                         Console.ReadLine(); // Wait for user input before continuing
                         break;
+                    // case to Update Phone Number and Address
+                    case '7':
+                        UpdatePhoneAndAddress(IndexID); // If user exists, proceed with update
+                        Console.ReadLine(); // Wait for user input before continuing
+                        break;
                     // case to exist from user menu and Return to Main Menu 
                     case '0':
                         inUserMenu = false; // this will exit the loop and return
@@ -514,6 +525,61 @@ namespace MiniBankProject
                         Console.ReadKey();
                         break;
                 }
+            }
+        }
+        // Update Phone number and address Function
+        public static void UpdatePhoneAndAddress(int IndexID)
+        {
+            // Ask user to select which data want to update 
+            Console.WriteLine("Select the data you want to update:");
+            Console.WriteLine("1. Phone Number");
+            Console.WriteLine("2. Address");
+            Console.WriteLine("0. Return to User Menu");
+            Console.Write("Select option: ");
+            char choice = Console.ReadKey().KeyChar;
+            Console.WriteLine();
+            // Use switch to select one of many code blocks to be executed
+            Console.WriteLine("You selected: " + choice);
+            Console.WriteLine("========================================");
+            switch (choice)
+            {
+                // case to Update Phone Number
+                case '1':
+                    Console.WriteLine("Enter your new phone number: ");
+                    string newPhoneNumber = Console.ReadLine();
+                    // Validate the new phone number
+                    if (IsValidPhoneNumber(newPhoneNumber))
+                    {
+                        UserPhoneNumbers[IndexID] = newPhoneNumber; // Update the phone number in the list
+                        Console.WriteLine($"Updated Phone: {UserPhoneNumbers[IndexID]}");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Invalid phone number format. Please try again.");
+                    }
+                    break;
+                // case to Update Address
+                case '2':
+                    Console.WriteLine("Enter your new address: ");
+                    string newAddress = Console.ReadLine();
+                    // Validate the new address
+                    if (StringlettersWithNumbers(newAddress))
+                    {
+                        UserAddresses[IndexID] = newAddress; // Update the address in the list
+                        Console.WriteLine($"Updated Address: {UserAddresses[IndexID]}");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Invalid address format. Please try again.");
+                    }
+                    break;
+                // case to Return to User Menu
+                case '0':
+                    return; // Exit the method and return to User Menu
+                // default case if user choice the wronge number within the range of cases 
+                default:
+                    Console.WriteLine("Wronge Choice number, Try Agine!");
+                    break;
             }
         }
         // Deposit Function 
@@ -1150,6 +1216,10 @@ namespace MiniBankProject
                 Console.WriteLine($"User National ID: {UserNationalID} ");
                 // Extract the hashed password from the request
                 string UserHashedPassword = SplitRrquest[2];
+                // Extract the phone number from the request
+                string UserPhoneNumber = SplitRrquest[3];
+                // Extract the address from the request
+                string UserAddress = SplitRrquest[4];
                 // Increment the last account ID number for the new account
                 int NewAccountIDNumber = LastAccountNumber + 1;
                 // Set initial account balance to 0
@@ -1168,12 +1238,12 @@ namespace MiniBankProject
                     UserBalances.Add(balance);
                     // Add user hashed password in the AccountUserHashedPasswords list
                     AccountUserHashedPasswords.Add(UserHashedPassword);
-
-      
-
-
+                    // Add user phone number in the UserPhoneNumbers list
+                    UserPhoneNumbers.Add(SplitRrquest[3]);
+                    // Add user address in the UserAddresses list
+                    UserAddresses.Add(SplitRrquest[4]);
                     // add user type 
-                    Console.WriteLine($"Account created for {UserName} with Account Number: {NewAccountIDNumber} and Password: {UserHashedPassword}");
+                    Console.WriteLine($"Account created for {UserName} with Account Number: {NewAccountIDNumber}, Phone Number: {UserPhoneNumber} and address: {UserAddress}");
                     // display message to the user that account created successfully
                     Console.WriteLine("Account Accepted successfully.");
                     LastAccountNumber = NewAccountIDNumber;
