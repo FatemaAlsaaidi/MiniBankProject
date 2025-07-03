@@ -957,7 +957,7 @@ namespace MiniBankProject
                         break;
                     // Search user by enter user National ID
                     case '5':
-                        int UserIndexID = UserLoginWithID();
+                        int UserIndexID = EnterUserID();
                         SearchUserByNationalID(UserIndexID);
                         Console.ReadLine();
                         break;
@@ -1597,7 +1597,7 @@ namespace MiniBankProject
                     {
                         // Create a line of data combining account info separated by commas
                         string dataLine = $"{AccountNumbers[i]},{AccountUserNames[i]},{AccountUserNationalID[i]},{UserBalances[i]},{AccountUserHashedPasswords[i].Trim()}";// use Trim() to remove any extra spaces
-                        Console.WriteLine(dataLine);
+                        //Console.WriteLine(dataLine);
                         // Write the data line into the file
                         writer.WriteLine(dataLine);
                     }
@@ -2003,6 +2003,52 @@ namespace MiniBankProject
                 }
             }
             return false; // User password does not exist in the list
+        }
+
+        // ********************************************** Enter User ID ****************************
+        public static int EnterUserID()
+        {
+            int tries = 0;
+            int IndexId = -1;
+            bool UserExist = false;
+            string ID = "";
+            // Step 1: Verify National ID
+            do
+            {
+                // Prompt user to enter their National ID
+                Console.WriteLine("Enter User National ID: ");
+                ID = Console.ReadLine(); // Read user input from console                           
+                // valid user exist
+                UserExist = CheckUserIDExist(ID);
+                if (UserExist == false) // or if(!UserExist)
+                {
+                    Console.WriteLine("User with this ID does not exist. Please try again.");
+                    tries++;
+                }
+
+            } while (UserExist == false && tries < 3);
+            if (tries == 3)
+            {
+                Console.WriteLine("You have exceeded the number of times you are allowed to enter a valid ID.");
+                Console.ReadLine();
+                return IndexId;
+            }
+            tries = 0;
+            // Step 2: Find user index
+            if (UserExist == true) // or if(UserExist)
+            {
+                //loop thriugh items in list
+                for (int i = 0; i < AccountUserNationalID.Count; i++)
+                {
+                    //check if Input exist in the list 
+                    if (AccountUserNationalID[i] == ID)
+                    {
+                        // Store the index of the user with the matching ID.
+                        IndexId = i;
+                    }
+                }
+            }
+            return IndexId;
         }
 
 
