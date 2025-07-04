@@ -18,6 +18,9 @@ using System.IO;
 using System.Numerics;
 using System.Transactions;
 using System.Runtime.ConstrainedExecution;
+using System.Collections.Generic;
+using System.Net;
+using System.Security.Principal;
 
 namespace MiniBankProject
 {
@@ -32,6 +35,10 @@ namespace MiniBankProject
         const string CancelcreateAccountRequestsFilePath = "CancleRequests.txt";
         const string AdminInformationFilePath = "Admin.txt";
         const string MonthlyStatementGeneratorFilePath = "Statement_Acc12345_2025-07.txt";
+        // Export All Account Info file path
+        static string ExportFilePath = "ExportedAccounts.txt";
+        // File to store User Feedbacks
+        static string UserFeedbackFilePath = "UserFeedbacks.txt";
         // generate ID number for every account 
         static int LastAccountNumber = 0;
         static int IndexID = 0;
@@ -45,6 +52,8 @@ namespace MiniBankProject
         static List<string> AccountUserHashedPasswords = new List<string>();
         static List<string> UserPhoneNumbers = new List<string>();
         static List<string> UserAddresses = new List<string>();
+        // String list to store user feedbacks
+        static List<string> UserFeedbacks = new List<string>();
 
         // User Transactions History
         static List<List<string>> UserTransactions = new List<List<string>>(); // MonthlyStatementGenerator
@@ -68,8 +77,7 @@ namespace MiniBankProject
         //review in stack
         static Stack<string> UserReviewsStack = new Stack<string>();
 
-        // Export All Account Info file path
-        static string ExportFilePath = "ExportedAccounts.txt";
+        
 
         // Loan requests 
         static List<bool> UserHasActiveLoan = new List<bool>();
@@ -436,6 +444,7 @@ namespace MiniBankProject
                         string request = UserName + "|" + UserID + "|" + hashedPassword + "|" + UserPhoneNumber + "|" + UserAddress;
                         createAccountRequests.Enqueue(request);
                         Console.WriteLine("Request Account Creation successfully submitted.");
+                        UserFeedbackSystem("Request Creation Account");
                     }
                 }
                 
@@ -596,6 +605,7 @@ namespace MiniBankProject
                     {
                         UserPhoneNumbers[IndexID] = newPhoneNumber; // Update the phone number in the list
                         Console.WriteLine($"Updated Phone: {UserPhoneNumbers[IndexID]}");
+                        UserFeedbackSystem("Updated Phone");
                     }
                     else
                     {
@@ -611,6 +621,8 @@ namespace MiniBankProject
                     {
                         UserAddresses[IndexID] = newAddress; // Update the address in the list
                         Console.WriteLine($"Updated Address: {UserAddresses[IndexID]}");
+                        UserFeedbackSystem("Updated Address");
+
                     }
                     else
                     {
@@ -684,6 +696,7 @@ namespace MiniBankProject
                         UserTransactions[IndexID].Add(transactionRecord);
                         // Save the user's transactions to a file.
                         SaveUserTransactionsToFile();
+                        UserFeedbackSystem("Deposit");
                         // Exit the method (if inside a method).
                         return;
 
@@ -753,6 +766,7 @@ namespace MiniBankProject
                             UserTransactions[IndexID].Add(transactionRecord);
                             // Save the user's transactions to a file.
                             SaveUserTransactionsToFile();
+                            UserFeedbackSystem("Withdraw");
                             // Set the flag to true to exit the loop.
                             IsWithdraw = true;
                         }
@@ -794,6 +808,7 @@ namespace MiniBankProject
                 {// push review in stack named "UserReviews"
                     UserReviewsStack.Push(review);
                     Console.WriteLine("Your Review successfully submited");
+                    UserFeedbackSystem("Submit Review");
                 }
                 else
                 {
@@ -869,6 +884,7 @@ namespace MiniBankProject
                             UserTransactions[UserIndexID2].Add(transactionRecord2);   // Correct receiver record
 
                             SaveUserTransactionsToFile();
+                            UserFeedbackSystem("Transfer");
 
                             IsTransfer = true;
                         }
@@ -967,6 +983,7 @@ namespace MiniBankProject
             }
 
             Console.WriteLine("\nEnd of transactions for the selected month.");
+            UserFeedbackSystem("Generate Monthly Statement");
         }
 
         // Request a Loan Function
@@ -995,6 +1012,7 @@ namespace MiniBankProject
             LoanRequests.Enqueue(request);
 
             Console.WriteLine("Loan request submitted for admin approval.");
+            UserFeedbackSystem("Request Loan");
         }
 
         // View Active Loan Information Function
@@ -1140,6 +1158,7 @@ namespace MiniBankProject
                 for (int i = start; i < userTransactions.Count; i++)
                 {
                     Console.WriteLine(userTransactions[i]);
+                    UserFeedbackSystem("View Last Transactions");
                 }
             }
             catch (Exception e)
@@ -1180,6 +1199,7 @@ namespace MiniBankProject
                     {
                         Console.WriteLine(transaction);
                         found = true;
+                        UserFeedbackSystem("View Transactions After Date");
                     }
                 }
             }
@@ -1190,9 +1210,25 @@ namespace MiniBankProject
             }
         }
 
+        // User Feedback for Transection function 
+        public static void UserFeedbackSystem(string TransectionType)
+        {
+            int Rate = 0;
+            Console.WriteLine($"Please provide your rate service feedback for the {TransectionType} transaction from 1 to 5 (1: very bad, 5: Excellent):");
+            Rate = int.Parse(Console.ReadLine());
+            // Validate the rate input
+            if (Rate < 1 || Rate > 5)
+            {
+                Console.WriteLine("Invalid rate. Please enter a number between 1 and 5.");
+                return;
+            }
+            // Add the rate and transection type in one string to the UserFeedback list
+            string Feedback = TransectionType +"|" + Rate;
 
-
-
+            UserFeedbacks.Add(Feedback);
+            Console.WriteLine($"Thank you for your feedback! You rated the {TransectionType} transaction as {Rate} out of 5.");
+            SaveUserFeedbackToFile();
+        }
 
         // ===================== Admin Features Function ==========================
         // Admin create account 
@@ -1349,6 +1385,7 @@ namespace MiniBankProject
                 Console.WriteLine("8. Show Top 3 Richest Customers");
                 Console.WriteLine("9. Export All Account Info to a New File (CSV or txt)");
                 Console.WriteLine("10. Process Loan Requests");
+                Console.WriteLine("11. Average Of FeedBack Rate");
                 Console.WriteLine("0. Return to Main Menu");
                 Console.Write("Select option: ");
                 string adminChoice = Console.ReadLine().Trim(); // Read user input from console
@@ -1415,6 +1452,135 @@ namespace MiniBankProject
                     case "10":
                         ProcessLoanRequests();
                         Console.ReadLine();
+                        break;
+
+                    // case to Average Of Transaction Rate
+                    case "11":
+                        Console.WriteLine("Calculating average transaction rate...");
+                        // Ask to enter the type of tansaction for which to calculate the average rate
+                        Console.WriteLine("Enter the type of transaction:");
+                        Console.WriteLine("1. Request Creation Account");
+                        Console.WriteLine("2. Updated Phone");
+                        Console.WriteLine("3. Updated Address");
+                        Console.WriteLine("4. Deposit");
+                        Console.WriteLine("5. Withdraw");
+                        Console.WriteLine("6. Submit Review");
+                        Console.WriteLine("7. Transfer");
+                        Console.WriteLine("8. Generate Monthly Statement");
+                        Console.WriteLine("9. Request Loan");
+                        Console.WriteLine("10. View Last Transactions");
+                        Console.WriteLine("11. View Transactions After Date");
+                        Console.WriteLine("0. Return to Admin Menu");
+
+                        string transactionTypeChoice = Console.ReadLine();
+                        string transactionType = "";
+                        double averageRate = 0.0; // Initialize average rate variable
+                        switch (transactionTypeChoice)
+
+                        {
+                            case "1":
+                                transactionType = "Request Creation Account";
+
+                                // Call the function to calculate the average transaction rate
+                                averageRate = CalculateAverageFeedback(transactionType);
+                                Console.WriteLine($"The average transaction rate is: {averageRate}");
+                                Console.ReadLine();
+
+                                break;
+                            case "2":
+                                transactionType = "Updated Phone";
+
+                                // Call the function to calculate the average transaction rate
+                                averageRate = CalculateAverageFeedback(transactionType);
+                                Console.WriteLine($"The average transaction rate is: {averageRate}");
+                                Console.ReadLine();
+
+                                break;
+                            case "3":
+                                transactionType = "Updated Address";
+
+                                // Call the function to calculate the average transaction rate
+                                averageRate = CalculateAverageFeedback(transactionType);
+                                Console.WriteLine($"The average transaction rate is: {averageRate}");
+                                Console.ReadLine();
+
+                                break;
+                            case "4":
+                                transactionType = "Deposit";
+
+                                // Call the function to calculate the average transaction rate
+                                averageRate = CalculateAverageFeedback(transactionType);
+                                Console.WriteLine($"The average transaction rate is: {averageRate}");
+                                Console.ReadLine();
+
+                                break;
+                            case "5":
+                                transactionType = "Withdraw";
+
+                                // Call the function to calculate the average transaction rate
+                                averageRate = CalculateAverageFeedback(transactionType);
+                                Console.WriteLine($"The average transaction rate is: {averageRate}");
+                                Console.ReadLine();
+
+                                break;
+                            case "6":
+                                transactionType = "Submit Review";
+
+                                // Call the function to calculate the average transaction rate
+                                averageRate = CalculateAverageFeedback(transactionType);
+                                Console.WriteLine($"The average transaction rate is: {averageRate}");
+                                Console.ReadLine();
+
+                                break;
+                            case "7":
+                                transactionType = "Transfer";
+
+                                // Call the function to calculate the average transaction rate
+                                averageRate = CalculateAverageFeedback(transactionType);
+                                Console.WriteLine($"The average transaction rate is: {averageRate}");
+                                Console.ReadLine();
+
+                                break;
+                            case "8":
+                                transactionType = "Generate Monthly Statement";
+
+                                // Call the function to calculate the average transaction rate
+                                averageRate = CalculateAverageFeedback(transactionType);
+                                Console.WriteLine($"The average transaction rate is: {averageRate}");
+                                Console.ReadLine();
+
+                                break;
+                            case "9":
+                                transactionType = "Request Loan";
+
+                                // Call the function to calculate the average transaction rate
+                                averageRate = CalculateAverageFeedback(transactionType);
+                                Console.WriteLine($"The average transaction rate is: {averageRate}");
+                                Console.ReadLine();
+
+                                break;
+                            case "10":
+                                transactionType = "View Last Transactions";
+
+                                // Call the function to calculate the average transaction rate
+                                averageRate = CalculateAverageFeedback(transactionType);
+                                Console.WriteLine($"The average transaction rate is: {averageRate}");
+                                Console.ReadLine();
+
+                                break;
+                            case "11":
+                                transactionType = "View Transactions After Date";
+
+                                // Call the function to calculate the average transaction rate
+                                averageRate = CalculateAverageFeedback(transactionType);
+                                Console.WriteLine($"The average transaction rate is: {averageRate}");
+                                Console.ReadLine();
+
+                                break;
+                            default:
+                                Console.WriteLine("Invalid choice. Please try again.");
+                                continue; // Skip to the next iteration of the loop
+                        }
                         break;
                     // case to Return to Main Menu
                     case "0":
@@ -1763,6 +1929,21 @@ namespace MiniBankProject
             }
 
             Console.WriteLine($"{initialCount} loan requests processed.");
+        }
+
+        // Calculate the average feedback rating for a specific transaction type
+        public static double CalculateAverageFeedback(string transactionType)
+        {
+            LoadUserTransactionsFromFile();
+            if (string.IsNullOrEmpty(transactionType))
+            {
+                Console.WriteLine("Transaction type cannot be null or empty.");
+                return 0;
+            }
+            var feedbacks = UserFeedbacks.Where(f => f.StartsWith(transactionType + "|")).Select(f => f.Split('|')[1]).Select(int.Parse).ToList();
+            if (feedbacks.Count == 0)
+                return 0;
+            return feedbacks.Average();
         }
 
 
@@ -2412,6 +2593,59 @@ namespace MiniBankProject
             {
                 // Inform the user that there was an error loading the file
                 Console.WriteLine("Error loading user transactions from file.");
+            }
+        }
+
+        //****************************** save and load User Feedback ***************************************
+        public static void SaveUserFeedbackToFile()
+        {
+            try // Try to execute the code inside the block
+            {
+                // Open the file for writing 
+                using (StreamWriter writer = new StreamWriter(UserFeedbackFilePath))
+                {
+                    // Loop through all user feedback by index
+                    for (int i = 0; i < UserFeedbacks.Count; i++)
+                    {
+                        // Write each feedback as a single line in the file
+                        writer.WriteLine(UserFeedbacks[i]);
+                    }
+                }
+                // Inform the user that feedback was saved successfully
+                Console.WriteLine("User feedback saved successfully.");
+            }
+            catch // If any error occurs during saving
+            {
+                // Inform the user that there was an error saving the file
+                Console.WriteLine("Error saving user feedback to file.");
+            }
+        }
+        public static void LoadUserFeedbackFromFile()
+        {
+            try // Try to execute the code inside the block
+            {
+                // Check if the feedback file does not exist
+                if (!File.Exists(UserFeedbackFilePath)) return;
+                // Clear the list of user feedbacks
+                UserFeedbacks.Clear();
+                // Open the file for reading using StreamReader
+                using (StreamReader reader = new StreamReader(UserFeedbackFilePath))
+                {
+                    string line; // Declare a variable to hold each line
+                    // Read each line until the end of the file
+                    while ((line = reader.ReadLine()) != null)
+                    {
+                        // Add each feedback line to the UserFeedbacks list
+                        UserFeedbacks.Add(line);
+                    }
+                }
+                // Inform the user that feedback has been loaded successfully
+                Console.WriteLine("User feedback loaded successfully.");
+            }
+            catch // If any error happens
+            {
+                // Inform the user that there was an error loading the file
+                Console.WriteLine("Error loading user feedback from file.");
             }
         }
 
