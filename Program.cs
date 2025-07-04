@@ -716,6 +716,11 @@ namespace MiniBankProject
                             PrintReceipt(transactionType: "Withdraw", amount: FinalwithdrawAmount, balance: UserBalances[IndexID]);         
                             // Record the transaction in the user's transaction history.
                             string transactionRecord = $"{DateTime.Now:yyyy-MM-dd},Withdraw,{FinalwithdrawAmount},{UserBalances[IndexID]}";
+                            for (int i = UserTransactions.Count; i < UserBalances.Count; i++)
+                            {
+                                UserTransactions.Add(new List<string>());
+                            }
+
                             UserTransactions[IndexID].Add(transactionRecord);
                             // Save the user's transactions to a file.
                             SaveUserTransactionsToFile();
@@ -840,8 +845,12 @@ namespace MiniBankProject
 
                             // transection record for the receiver
                             string transactionRecord2 = $"{DateTime.Now:yyyy-MM-dd},Trsnsfer To,{FinalTransferAmount},-,{UserBalances[UserIndexID2]}";
-                            UserTransactions[UserIndexID2].Add(transactionRecord2);
+                            for (int i = UserTransactions.Count; i < UserBalances.Count; i++)
+                            {
+                                UserTransactions.Add(new List<string>());
+                            }
 
+                            UserTransactions[IndexID].Add(transactionRecord);
                             // Save the user's transactions to a file.
                             SaveUserTransactionsToFile();
 
