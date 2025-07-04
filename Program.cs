@@ -39,6 +39,9 @@ namespace MiniBankProject
         static string ExportFilePath = "ExportedAccounts.txt";
         // File to store User Feedbacks
         static string UserFeedbackFilePath = "UserFeedbacks.txt";
+        // Backup file name with timestamp
+        string backupFileName = $"Backup_{DateTime.Now:yyyy-MM-dd_HHmm}.txt";
+
         // generate ID number for every account 
         static int LastAccountNumber = 0;
         static int IndexID = 0;
@@ -127,7 +130,10 @@ namespace MiniBankProject
                         SaveAccepteRequestsToFaile();
                         SaveAdminInformationToFile();
                         SaveCancleRequestsToFaile();
-                        
+
+                        // save all data in backup file before exit from system
+                        BackupAllDataToFile();
+
                         UsersSystemMenu = false;
                         break;
                     // by default case to display error choic message 
@@ -138,6 +144,9 @@ namespace MiniBankProject
                 }
             }
         }
+
+        
+
 
         // User Menu
         public static void UserMenu()
@@ -2646,6 +2655,42 @@ namespace MiniBankProject
             {
                 // Inform the user that there was an error loading the file
                 Console.WriteLine("Error loading user feedback from file.");
+            }
+        }
+
+        // ======================================== Backup All Datat =================================
+        public static void BackupAllDataToFile()
+        {
+            string backupFileName = $"Backup_{DateTime.Now:yyyy-MM-dd_HHmm}.txt";
+
+            try
+            {
+                using (StreamWriter writer = new StreamWriter(backupFileName))
+                {
+                    writer.WriteLine("=== Account Data Backup ===");
+                    for (int i = 0; i < AccountNumbers.Count; i++)
+                    {
+                        writer.WriteLine($"AccountNumber:{AccountNumbers[i]}, Name:{AccountUserNames[i]}, NationalID:{AccountUserNationalID[i]}, Balance:{UserBalances[i]}, Phone:{UserPhoneNumbers[i]}, Address:{UserAddresses[i]}, HasActiveLoan:{UserHasActiveLoan[i]}, LoanAmount:{UserLoanAmounts[i]}, InterestRate:{UserLoanInterestRates[i]}");
+                    }
+
+                    writer.WriteLine();
+                    writer.WriteLine("=== Transaction Logs ===");
+                    for (int i = 0; i < UserTransactions.Count; i++)
+                    {
+                        writer.WriteLine($"Transactions for {AccountUserNames[i]} (Account {AccountNumbers[i]}):");
+                        foreach (var transaction in UserTransactions[i])
+                        {
+                            writer.WriteLine(transaction);
+                        }
+                        writer.WriteLine();
+                    }
+                }
+
+                Console.WriteLine($"Backup completed successfully: {backupFileName}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Backup failed: {ex.Message}");
             }
         }
 
