@@ -17,6 +17,7 @@ using System.Text;
 using System.IO;
 using System.Numerics;
 using System.Transactions;
+using System.Runtime.ConstrainedExecution;
 
 namespace MiniBankProject
 {
@@ -466,6 +467,8 @@ namespace MiniBankProject
                 Console.WriteLine("8. View Transaction History");
                 Console.WriteLine("9. Request a Loan");
                 Console.WriteLine("10. View Active Loan Information");
+                Console.WriteLine("11. View Last N Transactions");
+                Console.WriteLine("12. View Transactions After a Date");
                 Console.WriteLine("0. Return to Main Menu");
                 Console.Write("Select option: ");
                 string userChoice = Console.ReadLine();
@@ -545,6 +548,17 @@ namespace MiniBankProject
                         ViewActiveLoanInfo(IndexID);
                         Console.ReadLine();
                         break;
+                    // case to View Last N Transactions
+                    case "11":
+                        ViewLastNTransactions(IndexID);
+                        Console.ReadLine();
+                        break;
+                    // case to View Transactions After a Date
+                    case "12":
+                        ViewTransactionsAfterDate(IndexID);
+                        Console.ReadLine();
+                        break;
+
                     // case to exist from user menu and Return to Main Menu 
                     case "0":
                         inUserMenu = false; // this will exit the loop and return
@@ -1074,6 +1088,108 @@ namespace MiniBankProject
                 Console.WriteLine("Today is not the 1st of the month. Salaries were not deposited.");
             }
         }
+
+        // View Last N Transactions function 
+        public static void ViewLastNTransactions(int IndexID)
+        {
+            try
+            {
+                // Check if the user has any transactions
+                if (UserTransactions.Count == 0 || UserTransactions[IndexID] == null || UserTransactions[IndexID].Count == 0)
+                {
+                    Console.WriteLine("No transactions found for this account.");
+                    return;
+                }
+                // Ask user for the number of recent transactions to display
+
+                Console.Write("Enter the number of recent transactions to display: ");
+                if (!int.TryParse(Console.ReadLine(), out int n) || n <= 0)
+                {
+                    Console.WriteLine("Invalid number entered.");
+                    return;
+                }
+
+                if (IndexID < 0 || IndexID >= UserTransactions.Count)
+                {
+                    Console.WriteLine("Invalid user index.");
+                    return;
+                }
+
+                // Retrieve the user's transactions
+                var userTransactions = UserTransactions[IndexID]; // use var instead of use string where var is inferred as List<string> by the compiler. and it insted of use  List<string> userTransactions = UserTransactions[IndexID];
+                // You do not use string because UserTransactions[IndexID] is not a single string, it is a List<string>.
+
+                //Use:
+
+                // List<string> userTransactions = UserTransactions[IndexID]; (explicit, clear for beginners).
+
+                //var userTransactions = UserTransactions[IndexID]; (clean, when comfortable with type inference).
+
+                // Using string here is conceptually and syntactically incorrect.
+
+
+                if (userTransactions.Count == 0)
+                {
+                    Console.WriteLine("No transactions found for this account.");
+                    return;
+                }
+                // Show the last n transactions for the user,
+                int start = Math.Max(0, userTransactions.Count - n);
+
+                Console.WriteLine($"Last {n} transactions for {AccountUserNationalID[IndexID]}:");
+                for (int i = start; i < userTransactions.Count; i++)
+                {
+                    Console.WriteLine(userTransactions[i]);
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Error: {e.Message}");
+            }
+        }
+
+        // View Transactions After a Date function
+        public static void ViewTransactionsAfterDate(int IndexID)
+        {
+            Console.Write("Enter date (YYYY-MM-DD): ");
+            string dateInput = Console.ReadLine();
+
+            if (!DateTime.TryParse(dateInput, out DateTime filterDate))
+            {
+                Console.WriteLine("Invalid date format.");
+                return;
+            }
+
+            if (IndexID < 0 || IndexID >= UserTransactions.Count)
+            {
+                Console.WriteLine("Invalid user index.");
+                return;
+            }
+
+            var userTransactions = UserTransactions[IndexID];
+
+            bool found = false;
+            Console.WriteLine($"Transactions after {filterDate:yyyy-MM-dd} for {AccountUserNames[IndexID]}:");
+
+            foreach (var transaction in userTransactions)
+            {
+                var parts = transaction.Split(',');
+                if (DateTime.TryParse(parts[0], out DateTime transactionDate))
+                {
+                    if (transactionDate > filterDate)
+                    {
+                        Console.WriteLine(transaction);
+                        found = true;
+                    }
+                }
+            }
+
+            if (!found)
+            {
+                Console.WriteLine("No transactions found after the specified date.");
+            }
+        }
+
 
 
 
