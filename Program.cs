@@ -600,6 +600,11 @@ namespace MiniBankProject
         // Deposit Function 
         public static void Deposit(int IndexID)
         {
+            if (IndexID < 0 || IndexID >= UserBalances.Count)
+            {
+                Console.WriteLine("Error: Invalid user index for deposit operation.");
+                return;
+            }
             int tries = 0;
             // Initialize a boolean flag to control the deposit loop.
             bool IsDeposit = false;
@@ -608,8 +613,8 @@ namespace MiniBankProject
             // Initialize an index to find the user's position in the account list.
 
             // Start a try block to catch potential runtime exceptions.
-            try
-            {
+            //try
+            //{
                 // Repeat until a valid deposit is made.
                 do
                 {
@@ -633,14 +638,13 @@ namespace MiniBankProject
 
                         // Update the user's balance by adding the deposit amount.
                         UserBalances[IndexID] = UserBalances[IndexID] + FinalDepositAmount;
-                        UserBalances[IndexID] = UserBalances[IndexID] + FinalDepositAmount;
+
+                        // Display success message and the new balance.
+                        Console.WriteLine($"Successfully deposited {FinalDepositAmount} to your account.");
                         PrintReceipt(transactionType: "Deposit", amount: FinalDepositAmount, balance: UserBalances[IndexID]);
                         // Set the flag to true to exit the loop.
                         IsDeposit = true;
-                        Console.WriteLine($"Successfully deposited {FinalDepositAmount} to your account.");
-                        Console.WriteLine($"Your Current Balance is {UserBalances[IndexID]}");
-                        // Print the receipt for the deposit transaction.
-                        PrintReceipt(transactionType: "Deposit", amount: FinalDepositAmount, balance: UserBalances[IndexID]);
+                        
                         // Record the transaction in the user's transaction history.
                         string transactionRecord = $"{DateTime.Now:yyyy-MM-dd},Deposit,{FinalDepositAmount},{UserBalances[IndexID]}";
                         UserTransactions[IndexID].Add(transactionRecord);
@@ -656,9 +660,9 @@ namespace MiniBankProject
                         return;
                     }
                 } while (IsDeposit == false && tries < 3);
-            }
-            //Print any exception message that occurs during execution.
-            catch (Exception e) { Console.WriteLine(e.Message); }
+            //}
+            ////Print any exception message that occurs during execution.
+            //catch (Exception e) { Console.WriteLine(e.Message); }
 
         }
         // Withdraw Function 
@@ -708,6 +712,8 @@ namespace MiniBankProject
                             // Record the transaction in the user's transaction history.
                             string transactionRecord = $"{DateTime.Now:yyyy-MM-dd},Withdraw,{FinalwithdrawAmount},{UserBalances[IndexID]}";
                             UserTransactions[IndexID].Add(transactionRecord);
+                            // Save the user's transactions to a file.
+                            SaveUserTransactionsToFile();
                             // Set the flag to true to exit the loop.
                             IsWithdraw = true;
                         }
@@ -830,6 +836,9 @@ namespace MiniBankProject
                             // transection record for the receiver
                             string transactionRecord2 = $"{DateTime.Now:yyyy-MM-dd},Trsnsfer To,{FinalTransferAmount},-,{UserBalances[UserIndexID2]}";
                             UserTransactions[UserIndexID2].Add(transactionRecord2);
+
+                            // Save the user's transactions to a file.
+                            SaveUserTransactionsToFile();
 
                             IsTransfer = true; // Set flag to true to exit loop.
                         }
@@ -1341,7 +1350,10 @@ namespace MiniBankProject
                     Console.WriteLine("Account Accepted successfully.");
                     //Since a new user was added,
                     // You must also add an empty transaction list for this new user at the same index.
-                    UserTransactions.Add(new List<string>()); 
+                    for (int i = UserTransactions.Count; i < UserBalances.Count; i++)
+                    {
+                        UserTransactions.Add(new List<string>());
+                    }
 
                     LastAccountNumber = NewAccountIDNumber;
 
