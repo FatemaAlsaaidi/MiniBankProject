@@ -61,9 +61,7 @@ namespace MiniBankProject
 
 
         //Requests in queue
-        //static Queue<(string name, string nationalID)> createAccountRequests = new Queue<(string, string)>();
         static Queue<string> createAccountRequests = new Queue<string>(); // format: "Name|NationalID"
-
         static Queue<string> CancelcreateAccountRequests = new Queue<string>(); // format: "Name|NationalID"
 
         //review in stack
@@ -71,6 +69,13 @@ namespace MiniBankProject
 
         // Export All Account Info file path
         static string ExportFilePath = "ExportedAccounts.txt";
+
+        // Loan requests 
+        static List<bool> UserHasActiveLoan = new List<bool>();
+        static List<double> UserLoanAmounts = new List<double>();
+        static List<double> UserLoanInterestRates = new List<double>();
+        static Queue<string> LoanRequests = new Queue<string>();
+
 
         // ======================================== Menu Functions =================================
         static void Main(string[] args)
@@ -459,15 +464,17 @@ namespace MiniBankProject
                 Console.WriteLine("6. Undo Last Complaint");
                 Console.WriteLine("7. Update Phone Number and Address");
                 Console.WriteLine("8. View Transaction History");
+                Console.WriteLine("9. Request a Loan");
+                Console.WriteLine("10. View Active Loan Information");
                 Console.WriteLine("0. Return to Main Menu");
                 Console.Write("Select option: ");
-                char userChoice = Console.ReadKey().KeyChar;
+                string userChoice = Console.ReadLine();
                 Console.WriteLine();
 
                 switch (userChoice)
                 {                    
                     // case to Deposit
-                    case '1':
+                    case "1":
                         
                         Console.WriteLine("Proceeding to deposit...");
                         Deposit(IndexID); // If user exists, proceed with deposit
@@ -475,7 +482,7 @@ namespace MiniBankProject
                       
                         break;
                     // case to Withdraw
-                    case '2':
+                    case "2":
                         
                         Console.WriteLine("Proceeding to withdraw...");
                         withdraw(IndexID); // If user exists, proceed with withdraw
@@ -483,7 +490,7 @@ namespace MiniBankProject
                        
                         break;
                     // case to View Balance
-                    case '3':
+                    case "3":
 
                         Console.WriteLine("Proceeding to Check Balance...");
                         CheckBalance(IndexID); // If user exists, proceed with chech balance
@@ -491,12 +498,12 @@ namespace MiniBankProject
                        
                         break;
                     // case to Submit Review/Complaint
-                    case '4':
+                    case "4":
                         SubmitReview();
                         Console.ReadLine();
                         break;
                     // Transfer Money
-                    case '5':
+                    case "5":
                         // Ask user to enter the National ID of the account to transfer money to
                         int UserIndexID2 = EnterUserID();
                         if (UserIndexID2 != -1 && UserIndexID2 != IndexID) // when user login to its account by accountID number, this number save in value IndexID which decalre in "internal calss program" so when want to transer from its account to another account, no need to enter its accountIDNumber agine it save temberary in variable "IndexID"
@@ -514,24 +521,32 @@ namespace MiniBankProject
                         Console.ReadLine(); // Wait for user input before continuing
                         break;
                     // Undo Last Complaint
-                    case '6':
+                    case "6":
                         UndoLastComplaint();
                         Console.ReadLine(); // Wait for user input before continuing
                         break;
                     // case to Update Phone Number and Address
-                    case '7':
+                    case "7":
                         UpdatePhoneAndAddress(IndexID); // If user exists, proceed with update
                         Console.ReadLine(); // Wait for user input before continuing
                         break;
                     // case to View Transaction History
-                    case '8':
+                    case "8":
                         GenerateMonthlyStatement(IndexID);
                         Console.ReadLine();
-
-
+                        break;
+                    // case to Request a Loan
+                    case "9":
+                        RequestLoan(IndexID);
+                        Console.ReadLine();
+                        break;
+                    // case to View Active Loan Information
+                    case "10":
+                        ViewActiveLoanInfo(IndexID);
+                        Console.ReadLine();
                         break;
                     // case to exist from user menu and Return to Main Menu 
-                    case '0':
+                    case "0":
                         inUserMenu = false; // this will exit the loop and return
                         break;
                     // default case if user choice the wronge number within the range of cases 
@@ -940,6 +955,127 @@ namespace MiniBankProject
             Console.WriteLine("\nEnd of transactions for the selected month.");
         }
 
+        // Request a Loan Function
+        public static void RequestLoan(int IndexID)
+        {
+            if (UserHasActiveLoan[IndexID])
+            {
+                Console.WriteLine("You already have an active loan. Cannot request another loan.");
+                return;
+            }
+            if (UserBalances[IndexID] < 5000)
+            {
+                Console.WriteLine("Your balance must be at least 5000 to request a loan.");
+                return;
+            }
+
+            Console.Write("Enter desired loan amount: ");
+            if (!double.TryParse(Console.ReadLine(), out double loanAmount) || loanAmount <= 0)
+            {
+                Console.WriteLine("Invalid loan amount.");
+                return;
+            }
+
+            // Format: UserIndex|LoanAmount
+            string request = $"{IndexID}|{loanAmount}";
+            LoanRequests.Enqueue(request);
+
+            Console.WriteLine("Loan request submitted for admin approval.");
+        }
+
+        // View Active Loan Information Function
+
+        public static void ViewActiveLoanInfo(int IndexID)
+        {
+            if (UserHasActiveLoan[IndexID])
+            {
+                double remainingLoan = UserLoanAmounts[IndexID];
+                double monthlyPayment = 150.0;
+                int monthsToPayOff = (int)Math.Ceiling(remainingLoan / monthlyPayment);
+
+                Console.WriteLine($"You have an active loan of {remainingLoan} OMR with an interest rate of {UserLoanInterestRates[IndexID]}%.");
+                Console.WriteLine($" you pay 150 OMR every month, thus,  you pay off your loan in {monthsToPayOff} month(s).");
+            }
+            else
+            {
+                Console.WriteLine("You do not have any active loans.");
+            }
+        }
+
+        // Auto Repay Loan If Applicable Function
+        public static void AutoRepayLoanIfApplicable(int IndexID)
+        {
+            // Auto-repay only on the 1st day of each month
+            if (DateTime.Now.Day != 1)
+                return;
+
+            // Check if the user has an active loan
+            if (!UserHasActiveLoan[IndexID])
+                return;
+
+            double repaymentAmount = 150.0;
+
+            if (UserBalances[IndexID] >= repaymentAmount)
+            {
+                UserBalances[IndexID] -= repaymentAmount;
+                UserLoanAmounts[IndexID] -= repaymentAmount;
+
+                if (UserLoanAmounts[IndexID] <= 0)
+                {
+                    Console.WriteLine("Automatic repayment: Your loan has been fully repaid with this payment.");
+                    UserHasActiveLoan[IndexID] = false;
+                    UserLoanAmounts[IndexID] = 0;
+                    UserLoanInterestRates[IndexID] = 0;
+                }
+                else
+                {
+                    Console.WriteLine("Automatic repayment: 150 OMR has been deducted toward your loan.");
+                    Console.WriteLine($"Remaining loan balance: {UserLoanAmounts[IndexID]} OMR.");
+                }
+            }
+            else
+            {
+                Console.WriteLine("Automatic repayment attempted, but insufficient balance to deduct 150 OMR for loan repayment.");
+            }
+        }
+
+        // add salary to user balance in first every month 
+
+        public static void AddSalaryToUsersMonthly()
+        {
+            double salaryAmount = 600.0;
+
+            if (DateTime.Now.Day == 1)
+            {
+                for (int i = 0; i < UserBalances.Count; i++)
+                {
+                    // Ensure UserTransactions[i] exists
+                    while (UserTransactions.Count <= i)
+                    {
+                        UserTransactions.Add(new List<string>());
+                    }
+
+                    // Add salary
+                    UserBalances[i] += salaryAmount;
+                    Console.WriteLine($"Salary of {salaryAmount} OMR has been added to {AccountUserNames[i]}'s account. New balance: {UserBalances[i]} OMR.");
+
+                    // Log transaction
+                    string transactionRecord = $"{DateTime.Now:yyyy-MM-dd},Salary,{salaryAmount},{UserBalances[i]},-";
+                    UserTransactions[i].Add(transactionRecord);
+
+                    // Auto-deduct loan payment if applicable
+                    AutoRepayLoanIfApplicable(i);
+                }
+
+                Console.WriteLine("Monthly salaries have been deposited for all users.");
+            }
+            else
+            {
+                Console.WriteLine("Today is not the 1st of the month. Salaries were not deposited.");
+            }
+        }
+
+
 
 
         // ===================== Admin Features Function ==========================
@@ -1096,47 +1232,48 @@ namespace MiniBankProject
                 Console.WriteLine("7. Delete Account");
                 Console.WriteLine("8. Show Top 3 Richest Customers");
                 Console.WriteLine("9. Export All Account Info to a New File (CSV or txt)");
+                Console.WriteLine("10. Process Loan Requests");
                 Console.WriteLine("0. Return to Main Menu");
                 Console.Write("Select option: ");
-                char adminChoice = Console.ReadKey().KeyChar;
+                string adminChoice = Console.ReadLine().Trim(); // Read user input from console
                 Console.WriteLine();
 
                 // use switch to select one of many code blocks to be executed
                 switch (adminChoice)
                 {
                     // case to Process Next Account Request
-                    case '1':
+                    case "1":
                         ProcessAccountRequest();
                         Console.ReadLine();
                         break;
                     // case to View Submitted Reviews
-                    case '2':
+                    case "2":
                         ViewReviews();
                         Console.ReadLine();
                         break;
                     // case to View All Accounts
-                    case '3':
+                    case "3":
                         ViewAllAccounts();
                         Console.ReadLine();
                         break;
                     // case to View Pending Account Requests
-                    case '4':
+                    case "4":
                         ViewPendingRequests();
                         Console.ReadLine();
                         break;
                     // Search user by enter user National ID
-                    case '5':
+                    case "5":
                         int UserIndexID = EnterUserID();
                         SearchUserByNationalID(UserIndexID);
                         Console.ReadLine();
                         break;
                     // Show Total Bank Balance
-                    case '6':
+                    case "6":
                         ShowTotalBankBalance();
                         Console.ReadLine();
                         break;
                     // Delete Account
-                    case '7':
+                    case "7":
                         int deleteIndexID = EnterNationalID();
                         if (deleteIndexID != -1)
                         {
@@ -1148,18 +1285,23 @@ namespace MiniBankProject
                         }
                         Console.ReadLine();
                         break;
-                    case '8':
+                    case "8":
                         ShowTop3RichestCustomers();
                         Console.ReadLine();
                         break;
                     // Export All Account Info to a New File (CSV or txt)
-                    case '9':
+                    case "9":
                         ExportAccountsToFile(ExportFilePath);
                         Console.WriteLine($"All account information has been exported to {ExportFilePath}");
                         Console.ReadLine();
                         break;
+                    // case to Process Loan Requests
+                    case "10":
+                        ProcessLoanRequests();
+                        Console.ReadLine();
+                        break;
                     // case to Return to Main Menu
-                    case '0':
+                    case "0":
                         InAdminMenu = false; // this will exit the loop and return
                         break;
                     // default case to display message to the admin if selected the wronge number
@@ -1345,7 +1487,16 @@ namespace MiniBankProject
                     UserPhoneNumbers.Add(SplitRrquest[3]);
                     // Add user address in the UserAddresses list
                     UserAddresses.Add(SplitRrquest[4]);
-                    // add user type 
+                    // Add user has active loan in the UserHasActiveLoan list
+                    UserHasActiveLoan.Add(false);
+                    // Add user loan amounts in the UserLoanAmounts list
+                    UserLoanAmounts.Add(0);
+                    // Add user interest rates in the UserLoanInterestRates list
+                    UserLoanInterestRates.Add(0);
+
+
+
+
                     Console.WriteLine($"Account created for {UserName} with Account Number: {NewAccountIDNumber}, Phone Number: {UserPhoneNumber} and address: {UserAddress}");
                     // display message to the user that account created successfully
                     Console.WriteLine("Account Accepted successfully.");
@@ -1455,6 +1606,49 @@ namespace MiniBankProject
                 Console.WriteLine($"Error exporting accounts: {e.Message}");
             }
         }
+
+        // Process Loan Requests
+        public static void ProcessLoanRequests()
+        {
+            if (LoanRequests.Count == 0)
+            {
+                Console.WriteLine("No pending loan requests.");
+                return;
+            }
+
+            int initialCount = LoanRequests.Count;
+
+            while (LoanRequests.Count > 0)
+            {
+                string request = LoanRequests.Dequeue();
+                string[] parts = request.Split('|');
+                int userIndex = int.Parse(parts[0]);
+                double loanAmount = double.Parse(parts[1]);
+                double interestRate = 0.30;
+
+                Console.WriteLine($"Loan Request for User: {AccountUserNames[userIndex]} (Acc#: {AccountNumbers[userIndex]})");
+                Console.WriteLine($"Requested Amount: {loanAmount}, Interest Rate: 30%");
+                Console.Write("Approve this loan? (y/n): ");
+                string choice = Console.ReadLine();
+
+                if (choice.ToLower() == "y")
+                {
+                    UserBalances[userIndex] += loanAmount;
+                    UserHasActiveLoan[userIndex] = true;
+                    UserLoanAmounts[userIndex] = loanAmount;
+                    UserLoanInterestRates[userIndex] = interestRate;
+
+                    Console.WriteLine($"Loan approved and {loanAmount} added to user balance.");
+                }
+                else
+                {
+                    Console.WriteLine("Loan request rejected.");
+                }
+            }
+
+            Console.WriteLine($"{initialCount} loan requests processed.");
+        }
+
 
         // ************************************************* String Validation **********************************************
         public static bool stringOnlyLetterValidation(string word)
@@ -1779,7 +1973,7 @@ namespace MiniBankProject
                     for (int i = 0; i < AccountNumbers.Count; i++)
                     {
                         // Create a line of data combining account info separated by commas
-                        string dataLine = $"{AccountNumbers[i]},{AccountUserNames[i]},{AccountUserNationalID[i]},{UserBalances[i]},{AccountUserHashedPasswords[i].Trim()},{UserPhoneNumbers[i]},{UserAddresses[i]}";// use Trim() with AccountUserHashedPasswords[i] to remove any extra spaces
+                        string dataLine = $"{AccountNumbers[i]},{AccountUserNames[i]},{AccountUserNationalID[i]},{UserBalances[i]},{AccountUserHashedPasswords[i].Trim()},{UserPhoneNumbers[i]},{UserAddresses[i]}, {UserHasActiveLoan[i]},{UserLoanAmounts[i]}, {UserLoanInterestRates[i]}";// use Trim() with AccountUserHashedPasswords[i] to remove any extra spaces
                         //Console.WriteLine(dataLine);
                         // Write the data line into the file
                         writer.WriteLine(dataLine);
@@ -1820,6 +2014,12 @@ namespace MiniBankProject
                 UserPhoneNumbers.Clear();
                 // Clear the list of user addresses
                 UserAddresses.Clear();
+                // Clear the list of User Active Loan 
+                UserHasActiveLoan.Clear();
+                // Clear the list of user loan amount 
+                UserLoanAmounts.Clear();
+                // Clear the list of User loan interest rate 
+                UserLoanInterestRates.Clear();
                 // Clear the list of transactions
                 //transactions.Clear();
 
@@ -1848,6 +2048,13 @@ namespace MiniBankProject
                         UserPhoneNumbers.Add(parts[5]);
                         // Add the user address to the list
                         UserAddresses.Add(parts[6]);
+                        // Add the User active loan to list 
+                        UserHasActiveLoan.Add(Convert.ToBoolean(parts[7]));
+                        // Add the user Loa amount to the list 
+                        UserLoanAmounts.Add(Convert.ToDouble(parts[8]));
+                        // Add the user Loan Interest rate to list
+                        UserLoanInterestRates.Add(Convert.ToDouble(parts[9]));
+
                         // Update the last account number if this one is bigger
                         if (accNum > LastAccountNumber)
                             LastAccountNumber = accNum;
