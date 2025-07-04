@@ -805,72 +805,66 @@ namespace MiniBankProject
             double FinalTransferAmount = 0.0;
             bool IsTransfer = false;
             int tries = 0;
-            // Start a try block to catch potential runtime exceptions.
-            int IndexId = -1;
-            bool UserExist = false;
+
             try
             {
-                // Repeat until a valid transfer is made.
                 do
                 {
-                    // Ask user to enter the amount to transfer.
                     Console.WriteLine("Enter the amount of money you want to transfer: ");
                     TransferAmount = Console.ReadLine();
-                    // Validate the entered amount using a custom method.
-                    bool ValidTransferAmount = AmountValid(TransferAmount);
-                    if (ValidTransferAmount == false)
+
+                    if (!AmountValid(TransferAmount))
                     {
-                        // Display error if the input is not valid.
-                        Console.WriteLine("Invalid input");
-                        IsTransfer = false;
+                        Console.WriteLine("Invalid input.");
                         tries++;
                     }
                     else
                     {
-                        // Convert string to double using TryParse
                         double.TryParse(TransferAmount, out FinalTransferAmount);
-                        // Check if user balance is sufficient for the transfer.
-                        bool checkBalance = CheckBalanceAmount(FinalTransferAmount, UserIndexID);
-                        if (checkBalance == true)
+
+                        if (CheckBalanceAmount(FinalTransferAmount, UserIndexID))
                         {
-                            // Update the sender's balance by subtracting the transfer amount.
                             UserBalances[UserIndexID] -= FinalTransferAmount;
-                            // Update the receiver's balance by adding the transfer amount.
                             UserBalances[UserIndexID2] += FinalTransferAmount;
+
                             Console.WriteLine($"Successfully transferred {FinalTransferAmount} from Account {AccountNumbers[UserIndexID]} to Account {AccountNumbers[UserIndexID2]}");
                             Console.WriteLine($"Your Current Balance is {UserBalances[UserIndexID]}");
-                            // Record the transaction in the sender's transaction history.
-                            string transactionRecord = $"{DateTime.Now:yyyy-MM-dd},Trsnsfer From,{FinalTransferAmount},{UserBalances[UserIndexID]},-";
-                            UserTransactions[UserIndexID].Add(transactionRecord);
 
-                            // transection record for the receiver
-                            string transactionRecord2 = $"{DateTime.Now:yyyy-MM-dd},Trsnsfer To,{FinalTransferAmount},-,{UserBalances[UserIndexID2]}";
+                            string transactionRecord = $"{DateTime.Now:yyyy-MM-dd},Transfer From,{FinalTransferAmount},{UserBalances[UserIndexID]},To:{AccountNumbers[UserIndexID2]}";
+                            string transactionRecord2 = $"{DateTime.Now:yyyy-MM-dd},Transfer To,{FinalTransferAmount},{UserBalances[UserIndexID2]},From:{AccountNumbers[UserIndexID]}";
+
                             for (int i = UserTransactions.Count; i < UserBalances.Count; i++)
-                            {
                                 UserTransactions.Add(new List<string>());
-                            }
 
-                            UserTransactions[IndexID].Add(transactionRecord);
-                            // Save the user's transactions to a file.
+                            UserTransactions[UserIndexID].Add(transactionRecord);     // Correct sender record
+                            UserTransactions[UserIndexID2].Add(transactionRecord2);   // Correct receiver record
+
                             SaveUserTransactionsToFile();
 
-                            IsTransfer = true; // Set flag to true to exit loop.
+                            IsTransfer = true;
                         }
                         else
                         {
-                            Console.WriteLine($"Cannot transfer {FinalTransferAmount} from your balance, as it would result in a balance below 100.00.");
+                            Console.WriteLine($"Cannot transfer {FinalTransferAmount}. Insufficient balance (must remain above 100.00).");
                         }
-                        return; // Exit method after successful transfer.
+
+                        return; // Exit after handling transfer
                     }
+
                     if (tries == 3)
                     {
-                        Console.WriteLine("You have exceeded the number of times you are allowed to enter a valid value.");
+                        Console.WriteLine("You have exceeded the allowed number of attempts.");
                         return;
                     }
-                } while (IsTransfer == false && tries < 3);
+
+                } while (!IsTransfer && tries < 3);
             }
-            catch (Exception e) { Console.WriteLine(e.Message); } // Print any exception message that occurs during execution.
+            catch (Exception e)
+            {
+                Console.WriteLine($"Error: {e.Message}");
+            }
         }
+
 
         // Undo Last Complaint Submitted 
         public static void UndoLastComplaint()
