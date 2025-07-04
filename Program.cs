@@ -613,8 +613,8 @@ namespace MiniBankProject
             // Initialize an index to find the user's position in the account list.
 
             // Start a try block to catch potential runtime exceptions.
-            //try
-            //{
+            try
+            {
                 // Repeat until a valid deposit is made.
                 do
                 {
@@ -647,6 +647,11 @@ namespace MiniBankProject
                         
                         // Record the transaction in the user's transaction history.
                         string transactionRecord = $"{DateTime.Now:yyyy-MM-dd},Deposit,{FinalDepositAmount},{UserBalances[IndexID]}";
+                        for (int i = UserTransactions.Count; i < UserBalances.Count; i++)
+                        {
+                            UserTransactions.Add(new List<string>());
+                        }
+
                         UserTransactions[IndexID].Add(transactionRecord);
                         // Save the user's transactions to a file.
                         SaveUserTransactionsToFile();
@@ -660,11 +665,11 @@ namespace MiniBankProject
                         return;
                     }
                 } while (IsDeposit == false && tries < 3);
-            //}
-            ////Print any exception message that occurs during execution.
-            //catch (Exception e) { Console.WriteLine(e.Message); }
-
         }
+            //Print any exception message that occurs during execution.
+            catch (Exception e) { Console.WriteLine(e.Message); }
+
+}
         // Withdraw Function 
         public static void withdraw(int IndexID)
         {
@@ -918,27 +923,20 @@ namespace MiniBankProject
                 return;
             }
 
-            string fileName = $"Statement_Acc{AccountNumbers[IndexID]}_{year}-{month:D2}.txt";
+            
+            Console.WriteLine($"\n--- Transaction History for Account: {AccountNumbers[IndexID]} ---");
+            Console.WriteLine($"Period: {year}-{month:D2}");
+            Console.WriteLine("Date, Type, Amount, Balance After Transaction");
+            Console.WriteLine("---------------------------------------------");
 
-            try
+            foreach (var line in transactions)
             {
-                using (StreamWriter writer = new StreamWriter(fileName))
-                {
-                    writer.WriteLine($"Monthly Statement for Account: {AccountNumbers[IndexID]}");
-                    writer.WriteLine($"Period: {year}-{month:D2}");
-                    writer.WriteLine("Date,Type,Amount,Balance After Transaction");
-                    foreach (var line in transactions)
-                    {
-                        writer.WriteLine(line);
-                    }
-                }
-                Console.WriteLine($"Statement saved successfully to {fileName}");
+                Console.WriteLine(line);
             }
-            catch (Exception e)
-            {
-                Console.WriteLine($"Error saving statement: {e.Message}");
-            }
+
+            Console.WriteLine("\nEnd of transactions for the selected month.");
         }
+
 
 
         // ===================== Admin Features Function ==========================
@@ -1349,12 +1347,7 @@ namespace MiniBankProject
                     // display message to the user that account created successfully
                     Console.WriteLine("Account Accepted successfully.");
                     //Since a new user was added,
-                    // You must also add an empty transaction list for this new user at the same index.
-                    for (int i = UserTransactions.Count; i < UserBalances.Count; i++)
-                    {
-                        UserTransactions.Add(new List<string>());
-                    }
-
+                    
                     LastAccountNumber = NewAccountIDNumber;
 
                 }
