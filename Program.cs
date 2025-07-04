@@ -42,6 +42,9 @@ namespace MiniBankProject
         // Backup file name with timestamp
         string backupFileName = $"Backup_{DateTime.Now:yyyy-MM-dd_HHmm}.txt";
 
+        // User vrequest Appointment File
+        static string AppointmentRequestsFilePath = "AppointmentRequests.txt";
+
         // generate ID number for every account 
         static int LastAccountNumber = 0;
         static int IndexID = 0;
@@ -57,6 +60,13 @@ namespace MiniBankProject
         static List<string> UserAddresses = new List<string>();
         // String list to store user feedbacks
         static List<string> UserFeedbacks = new List<string>();
+
+        // Store appointment requests as "IndexID|ServiceType|DateTime"
+        static Queue<string> AppointmentRequests = new Queue<string>();
+        // Track if a user has an active appointment
+        static List<bool> UserHasActiveAppointment = new List<bool>();
+        // Optionally store the appointment datetime for each user
+        static List<DateTime> UserAppointmentDates = new List<DateTime>();
 
         // User Transactions History
         static List<List<string>> UserTransactions = new List<List<string>>(); // MonthlyStatementGenerator
@@ -485,6 +495,7 @@ namespace MiniBankProject
                 Console.WriteLine("8. View Transaction");
                 Console.WriteLine("9. Request a Loan");
                 Console.WriteLine("10. View Active Loan Information");
+                Console.WriteLine("11. Book Appointment For Book Service");
                 Console.WriteLine("0. Return to Main Menu");
                 Console.Write("Select option: ");
                 string userChoice = Console.ReadLine();
@@ -603,7 +614,12 @@ namespace MiniBankProject
                         ViewActiveLoanInfo(IndexID);
                         Console.ReadLine();
                         break;
-                    
+                    // case to Book Appointment For Book Service
+                    case "11":           
+                        RequestBookAppointment(IndexID);
+                        Console.ReadLine();
+                        break;
+
                     // case to exist from user menu and Return to Main Menu 
                     case "0":
                         inUserMenu = false; // this will exit the loop and return
@@ -1304,6 +1320,45 @@ namespace MiniBankProject
             }
         }
 
+        // Request Book Appointment Function
+        public static void RequestBookAppointment(int IndexID)
+        {
+            LoadAppointmentRequestsFromFile();
+            if (UserHasActiveAppointment[IndexID])
+            {
+                Console.WriteLine("You already have an active appointment. Please complete or cancel it before booking a new one.");
+                return;
+            }
+
+            Console.WriteLine("Select Service Type:\n1. Loan Discussion\n2. Account Consultation");
+            string choice = Console.ReadLine();
+            string serviceType = choice == "1" ? "Loan Discussion" : choice == "2" ? "Account Consultation" : "";
+
+            if (string.IsNullOrEmpty(serviceType))
+            {
+                Console.WriteLine("Invalid choice.");
+                return;
+            }
+
+            Console.Write("Enter desired appointment date and time (YYYY-MM-DD HH:MM): ");
+            string input = Console.ReadLine();
+
+            if (!DateTime.TryParse(input, out DateTime appointmentDateTime))
+            {
+                Console.WriteLine("Invalid date/time format.");
+                return;
+            }
+
+            // Add to appointment queue
+            AppointmentRequests.Enqueue($"{IndexID}|{serviceType}|{appointmentDateTime}");
+            UserHasActiveAppointment[IndexID] = true;
+            UserAppointmentDates[IndexID] = appointmentDateTime;
+
+            Console.WriteLine($"Appointment for {serviceType} booked successfully on {appointmentDateTime}.");
+            SaveAppointmentRequestsToFile();
+        }
+
+
 
         // ===================== Admin Features Function ==========================
         // Admin create account 
@@ -1462,6 +1517,7 @@ namespace MiniBankProject
                 Console.WriteLine("10. Process Loan Requests");
                 Console.WriteLine("11. Average Of FeedBack Rate");
                 Console.WriteLine("12. View User Transaction");
+                Console.WriteLine("13. View and Process Appointment Requests");
                 Console.WriteLine("0. Return to Main Menu");
                 Console.Write("Select option: ");
                 string adminChoice = Console.ReadLine().Trim(); // Read user input from console
@@ -1673,6 +1729,11 @@ namespace MiniBankProject
                         }
                         Console.ReadLine();
                         break;
+                    // case to View and Process Appointment Requests
+                    case "13":
+                        ProcessRequestAppointments();
+                        Console.ReadLine();
+                        break;
                     // case to Return to Main Menu
                     case "0":
                         InAdminMenu = false; // this will exit the loop and return
@@ -1866,6 +1927,10 @@ namespace MiniBankProject
                     UserLoanAmounts.Add(0);
                     // Add user interest rates in the UserLoanInterestRates list
                     UserLoanInterestRates.Add(0);
+                    // Add user has active appointment in the UserHasActiveAppointment list
+                    UserHasActiveAppointment.Add(false);
+                    // Add user appointment dates in the UserAppointmentDates list
+                    UserAppointmentDates.Add(DateTime.MinValue);
 
 
 
@@ -2036,6 +2101,50 @@ namespace MiniBankProject
                 return 0;
             return feedbacks.Average();
         }
+
+        // View and Process Appointment Requests
+        public static void ProcessRequestAppointments()
+        {
+            LoadAppointmentRequestsFromFile();
+            if (AppointmentRequests.Count == 0)
+            {
+                Console.WriteLine("No appointment requests to process.");
+                return;
+            }
+
+            int initialCount = AppointmentRequests.Count;
+
+            while (AppointmentRequests.Count > 0)
+            {
+                string request = AppointmentRequests.Dequeue();
+                string[] parts = request.Split('|');
+                int userIndex = int.Parse(parts[0]);
+                string serviceType = parts[1];
+                DateTime appointmentDateTime = DateTime.Parse(parts[2]);
+
+                Console.WriteLine($"Appointment Request for {AccountUserNames[userIndex]} (Acc#: {AccountNumbers[userIndex]}):");
+                Console.WriteLine($"Service: {serviceType}, Date/Time: {appointmentDateTime}");
+                Console.Write("Mark appointment as completed? (y/n): ");
+                string choice = Console.ReadLine();
+
+                if (choice.ToLower() == "y")
+                {
+                    UserHasActiveAppointment[userIndex] = false;
+                    UserAppointmentDates[userIndex] = DateTime.MinValue;
+                    Console.WriteLine("Appointment marked as completed.");
+                }
+                else
+                {
+                    // If not completed, you may choose to re-enqueue or discard
+                    AppointmentRequests.Enqueue(request);
+                    Console.WriteLine("Appointment retained for later processing.");
+                    break; // Optional: exit to avoid infinite loop
+                }
+            }
+
+            Console.WriteLine($"{initialCount} appointment requests processed.");
+        }
+
 
 
         // ************************************************* String Validation **********************************************
@@ -2740,6 +2849,58 @@ namespace MiniBankProject
             }
         }
 
+        // *************************************** Save and load Request Of appointment ***************************************
+        public static void SaveAppointmentRequestsToFile()
+        {
+            try // Try to execute the code inside the block
+            {
+                // Open the file for writing 
+                using (StreamWriter writer = new StreamWriter(AppointmentRequestsFilePath))
+                {
+                    // Loop through all appointment requests
+                    foreach (var request in AppointmentRequests)
+                    {
+                        // Write the request line into the file
+                        writer.WriteLine(request);
+                    }
+                }
+                // Inform the user that appointment requests were saved successfully
+                Console.WriteLine("Appointment requests saved successfully.");
+            }
+            catch // If any error occurs during saving
+            {
+                // Inform the user that there was an error saving the file
+                Console.WriteLine("Error saving appointment requests to file.");
+            }
+        }
+        public static void LoadAppointmentRequestsFromFile()
+        {
+            try // Try to execute the code inside the block
+            {
+                // Check if the appointment requests file does not exist
+                if (!File.Exists(AppointmentRequestsFilePath)) return;
+                // Clear the queue of appointment requests
+                AppointmentRequests.Clear();
+                // Open the file for reading using StreamReader
+                using (StreamReader reader = new StreamReader(AppointmentRequestsFilePath))
+                {
+                    string line; // Declare a variable to hold each line
+                    // Read each line until the end of the file
+                    while ((line = reader.ReadLine()) != null)
+                    {
+                        // Enqueue each request line into the AppointmentRequests queue
+                        AppointmentRequests.Enqueue(line);
+                    }
+                }
+                // Inform the user that appointment requests have been loaded successfully
+                Console.WriteLine("Appointment requests loaded successfully.");
+            }
+            catch // If any error happens
+            {
+                // Inform the user that there was an error loading the file
+                Console.WriteLine("Error loading appointment requests from file.");
+            }
+        }
         // ======================================== Backup All Datat =================================
         public static void BackupAllDataToFile()
         {
