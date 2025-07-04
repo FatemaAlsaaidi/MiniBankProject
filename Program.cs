@@ -482,11 +482,9 @@ namespace MiniBankProject
                 Console.WriteLine("5. Transfer Money");
                 Console.WriteLine("6. Undo Last Complaint");
                 Console.WriteLine("7. Update Phone Number and Address");
-                Console.WriteLine("8. View Transaction History");
+                Console.WriteLine("8. View Transaction");
                 Console.WriteLine("9. Request a Loan");
                 Console.WriteLine("10. View Active Loan Information");
-                Console.WriteLine("11. View Last N Transactions");
-                Console.WriteLine("12. View Transactions After a Date");
                 Console.WriteLine("0. Return to Main Menu");
                 Console.Write("Select option: ");
                 string userChoice = Console.ReadLine();
@@ -553,7 +551,46 @@ namespace MiniBankProject
                         break;
                     // case to View Transaction History
                     case "8":
-                        GenerateMonthlyStatement(IndexID);
+                        Console.WriteLine("Which option do you want to view transaction: ");
+                        Console.WriteLine("1. Display All Your Transaction");
+                        Console.WriteLine("2. Display Transaction For Specific Manth on a Specific Year");
+                        Console.WriteLine("3. View Last N Transactions");
+                        Console.WriteLine("4. View Transactions After a Date");
+                        Console.WriteLine("0. Return to User Menu");
+                        Console.Write("Select option: ");
+                        string choice = Console.ReadLine();
+                        Console.WriteLine();
+
+                        // Use switch to select one of many code blocks to be executed
+                        switch(choice)
+                        {
+                            // case to Display All Your Transaction
+                            case "1":
+                                 PrintAllTransactions(IndexID);
+                                break;
+                            // case to Display Transaction For Specific Manth on a Specific Year
+                            case "2":
+                                GenerateMonthlyStatement(IndexID);
+                                break;
+                            // case to View Last N Transactions
+                            case "3":
+                                ViewLastNTransactions(IndexID);
+                                Console.ReadLine();
+                                break;
+                            // case to View Transactions After a Date
+                            case "4":
+                                ViewTransactionsAfterDate(IndexID);
+                                Console.ReadLine();
+                                break;
+                            case "0":
+                                // Return to User Menu
+                                inUserMenu = true; // this will exit the loop and return
+                                break;
+                            // default case if user choice the wronge number within the range of cases 
+                            default:
+                                Console.WriteLine("Wronge Choice number, Try Agine!");
+                                break;
+                        }
                         Console.ReadLine();
                         break;
                     // case to Request a Loan
@@ -566,17 +603,7 @@ namespace MiniBankProject
                         ViewActiveLoanInfo(IndexID);
                         Console.ReadLine();
                         break;
-                    // case to View Last N Transactions
-                    case "11":
-                        ViewLastNTransactions(IndexID);
-                        Console.ReadLine();
-                        break;
-                    // case to View Transactions After a Date
-                    case "12":
-                        ViewTransactionsAfterDate(IndexID);
-                        Console.ReadLine();
-                        break;
-
+                    
                     // case to exist from user menu and Return to Main Menu 
                     case "0":
                         inUserMenu = false; // this will exit the loop and return
@@ -1239,6 +1266,45 @@ namespace MiniBankProject
             SaveUserFeedbackToFile();
         }
 
+        // Display All User Transaction 
+        public static void PrintAllTransactions(int IndexID)
+        {
+            LoadUserTransactionsFromFile();
+
+            if (IndexID < 0 || IndexID >= UserTransactions.Count)
+            {
+                Console.WriteLine("Invalid user index.");
+                return;
+            }
+
+            var userTransactions = UserTransactions[IndexID];
+
+            if (userTransactions.Count == 0)
+            {
+                Console.WriteLine("No transactions found for this user.");
+                return;
+            }
+
+            Console.WriteLine($"\nAll Transactions for {AccountUserNames[IndexID]} (Account: {AccountNumbers[IndexID]}):");
+            Console.WriteLine("Date         | Type      | Amount   | Balance After");
+            Console.WriteLine("---------------------------------------------------");
+
+            foreach (var transaction in userTransactions)
+            {
+                var parts = transaction.Split(',');
+                if (parts.Length >= 4)
+                {
+                    string date = parts[0];
+                    string type = parts[1];
+                    string amount = parts[2];
+                    string balanceAfter = parts[3];
+
+                    Console.WriteLine($"{date,-12} | {type,-9} | {amount,-8} | {balanceAfter}");
+                }
+            }
+        }
+
+
         // ===================== Admin Features Function ==========================
         // Admin create account 
         public static void AdminCreateAccount()
@@ -1395,6 +1461,7 @@ namespace MiniBankProject
                 Console.WriteLine("9. Export All Account Info to a New File (CSV or txt)");
                 Console.WriteLine("10. Process Loan Requests");
                 Console.WriteLine("11. Average Of FeedBack Rate");
+                Console.WriteLine("12. View User Transaction");
                 Console.WriteLine("0. Return to Main Menu");
                 Console.Write("Select option: ");
                 string adminChoice = Console.ReadLine().Trim(); // Read user input from console
@@ -1590,6 +1657,21 @@ namespace MiniBankProject
                                 Console.WriteLine("Invalid choice. Please try again.");
                                 continue; // Skip to the next iteration of the loop
                         }
+                        break;
+
+                    // case to View User Transaction
+                    case "12":
+                        // Ask the admin to enter the user National ID
+                        int userIndexID = EnterUserID();
+                        if (userIndexID != -1)
+                        {
+                            PrintAllTransactions(userIndexID);
+                        }
+                        else
+                        {
+                            Console.WriteLine("Login failed. Please check your National ID.");
+                        }
+                        Console.ReadLine();
                         break;
                     // case to Return to Main Menu
                     case "0":
