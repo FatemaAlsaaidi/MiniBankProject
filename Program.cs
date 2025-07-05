@@ -22,6 +22,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Security.Principal;
 using System.Reflection.PortableExecutable;
+using System.Collections;
 
 namespace MiniBankProject
 {
@@ -42,6 +43,10 @@ namespace MiniBankProject
         static string UserFeedbackFilePath = "UserFeedbacks.txt";
         // Backup file name with timestamp
         string backupFileName = $"Backup_{DateTime.Now:yyyy-MM-dd_HHmm}.txt";
+
+        // File accept loan requests
+        static string LoanRequestsFilePath = "LoanRequests.txt";
+        // file to store cancel loan requests
 
         // User vrequest Appointment File
         static string AppointmentRequestsFilePath = "AppointmentRequests.txt";
@@ -67,6 +72,8 @@ namespace MiniBankProject
 
         // Store appointment requests as "IndexID|ServiceType|DateTime"
         static Queue<string> AppointmentRequests = new Queue<string>();
+     
+
         // Track if a user has an active appointment
         static List<bool> UserHasActiveAppointment = new List<bool>();
         // Optionally store the appointment datetime for each user
@@ -124,7 +131,8 @@ namespace MiniBankProject
             LoadAcceptedRequests();
             LoadAdminInformationFromFile();
             LoadCancleRequests();
-            
+            LoadAppointmentRequestsFromFile();
+
             bool UsersSystemMenu = true;
             // while loop to display the mnue ewhile the flag is true
             while (UsersSystemMenu)
@@ -517,7 +525,6 @@ namespace MiniBankProject
                 Console.WriteLine("0. Return to Main Menu");
                 Console.Write("Select option: ");
                 string userChoice = Console.ReadLine();
-                Console.WriteLine();
 
                 switch (userChoice)
                 {                    
@@ -1382,39 +1389,105 @@ namespace MiniBankProject
         public static void RequestBookAppointment(int IndexID)
         {
             LoadAppointmentRequestsFromFile();
-            if (UserHasActiveAppointment[IndexID])
+
+            // Check if user already has an appointment in the queue
+            bool hasExistingAppointment = false;
+            foreach (string item in AppointmentRequests)
             {
-                Console.WriteLine("You already have an active appointment. Please complete or cancel it before booking a new one.");
-                return;
+                string[] parts = item.Split('|');
+                if (parts.Length >= 4 && parts[1] == AccountUserNationalID[IndexID])
+                {
+                    hasExistingAppointment = true;
+                    Console.WriteLine($"You already have an appointment for {parts[2]} on {parts[3]}.");
+                    Console.WriteLine("Do you want to cancel this appointment? (yes/no)");
+                    string response = Console.ReadLine().ToLower();
+
+                    if (response == "yes")
+                    {
+                        // Create a temporary queue excluding this appointment
+                        Queue<string> tempQueue = new Queue<string>();
+                        while (AppointmentRequests.Count > 0)
+                        {
+                            string currentItem = AppointmentRequests.Dequeue();
+                            string[] currentParts = currentItem.Split('|');
+                            if (!(currentParts.Length >= 4 && currentParts[1] == AccountUserNationalID[IndexID]))
+                            {
+                                tempQueue.Enqueue(currentItem);
+                            }
+                        }
+                        AppointmentRequests = tempQueue;
+
+                        UserHasActiveAppointment[IndexID] = false;
+                        UserAppointmentDates[IndexID] = DateTime.MinValue;
+                        Console.WriteLine("Your appointment has been cancelled.");
+
+                        SaveAppointmentRequestsToFile();
+
+                        Console.WriteLine("Do you want to book a new appointment? (yes/no)");
+                        response = Console.ReadLine().ToLower();
+                        if (response != "yes")
+                        {
+                            Console.WriteLine("Appointment booking cancelled.");
+                            return;
+                        }
+                        else
+                        {
+                            Console.WriteLine("Proceeding to book a new appointment...");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("You chose not to cancel your existing appointment.");
+                        return;
+                    }
+                    break;
+                }
             }
 
-            Console.WriteLine("Select Service Type:\n1. Loan Discussion\n2. Account Consultation");
-            string choice = Console.ReadLine();
-            string serviceType = choice == "1" ? "Loan Discussion" : choice == "2" ? "Account Consultation" : "";
-
-            if (string.IsNullOrEmpty(serviceType))
+            if (!hasExistingAppointment)
             {
-                Console.WriteLine("Invalid choice.");
-                return;
+                Console.WriteLine("You do not have an existing appointment.");
+                Console.WriteLine("Do you want to book a new appointment? (yes/no)");
+                string response = Console.ReadLine().ToLower();
+                if (response != "yes")
+                {
+                    Console.WriteLine("Appointment booking cancelled.");
+                    return;
+                }
+                else
+                {
+                    Console.WriteLine("Select Service Type:\n1. Loan Discussion\n2. Account Consultation");
+                    string choice = Console.ReadLine();
+                    string serviceType = choice == "1" ? "Loan Discussion" : choice == "2" ? "Account Consultation" : "";
+
+                    if (string.IsNullOrEmpty(serviceType))
+                    {
+                        Console.WriteLine("Invalid choice.");
+                        return;
+                    }
+
+                    Console.Write("Enter desired appointment date and time (YYYY-MM-DD HH:MM): ");
+                    string input = Console.ReadLine();
+
+                    if (!DateTime.TryParse(input, out DateTime appointmentDateTime))
+                    {
+                        Console.WriteLine("Invalid date/time format.");
+                        return;
+                    }
+
+                    string AppointmentRequest = IndexID + "|" + AccountUserNationalID[IndexID] + "|" + serviceType + "|" + appointmentDateTime.ToString("yyyy-MM-dd HH:mm");
+                    AppointmentRequests.Enqueue(AppointmentRequest);
+                    //UserHasActiveAppointment[IndexID] = true;
+                    //UserAppointmentDates[IndexID] = appointmentDateTime;
+                   
+                    Console.WriteLine($"Appointment for {serviceType} booked successfully on {appointmentDateTime}.");
+                    SaveAppointmentRequestsToFile();
+                }
             }
 
-            Console.Write("Enter desired appointment date and time (YYYY-MM-DD HH:MM): ");
-            string input = Console.ReadLine();
-
-            if (!DateTime.TryParse(input, out DateTime appointmentDateTime))
-            {
-                Console.WriteLine("Invalid date/time format.");
-                return;
-            }
-
-            // Add to appointment queue
-            AppointmentRequests.Enqueue($"{IndexID}|{serviceType}|{appointmentDateTime}");
-            UserHasActiveAppointment[IndexID] = true;
-            UserAppointmentDates[IndexID] = appointmentDateTime;
-
-            Console.WriteLine($"Appointment for {serviceType} booked successfully on {appointmentDateTime}.");
-            SaveAppointmentRequestsToFile();
+            
         }
+
 
 
 
@@ -1960,6 +2033,10 @@ namespace MiniBankProject
                     
                     LastAccountNumber = NewAccountIDNumber;
 
+                    
+
+
+
                 }
                 else
                 {
@@ -2124,6 +2201,7 @@ namespace MiniBankProject
         public static void ProcessRequestAppointments()
         {
             LoadAppointmentRequestsFromFile();
+
             if (AppointmentRequests.Count == 0)
             {
                 Console.WriteLine("No appointment requests to process.");
@@ -2131,37 +2209,43 @@ namespace MiniBankProject
             }
 
             int initialCount = AppointmentRequests.Count;
+            Queue<string> tempQueue = new Queue<string>();
 
             while (AppointmentRequests.Count > 0)
             {
                 string request = AppointmentRequests.Dequeue();
                 string[] parts = request.Split('|');
+                if (parts.Length < 4)
+                    continue;
+
                 int userIndex = int.Parse(parts[0]);
-                string serviceType = parts[1];
-                DateTime appointmentDateTime = DateTime.Parse(parts[2]);
+                string userNationalID = parts[1];
+                string serviceType = parts[2];
+                DateTime appointmentDateTime = DateTime.Parse(parts[3]);
 
                 Console.WriteLine($"Appointment Request for {AccountUserNames[userIndex]} (Acc#: {AccountNumbers[userIndex]}):");
                 Console.WriteLine($"Service: {serviceType}, Date/Time: {appointmentDateTime}");
                 Console.Write("Mark appointment as completed? (y/n): ");
-                string choice = Console.ReadLine();
+                string choice = Console.ReadLine().ToLower();
 
-                if (choice.ToLower() == "y")
+                if (choice == "y")
                 {
                     UserHasActiveAppointment[userIndex] = false;
                     UserAppointmentDates[userIndex] = DateTime.MinValue;
                     Console.WriteLine("Appointment marked as completed.");
+
+                    Console.WriteLine($"{initialCount} appointment requests processed.");
                 }
                 else
                 {
-                    // If not completed, you may choose to re-enqueue or discard
-                    AppointmentRequests.Enqueue(request);
+                    tempQueue.Enqueue(request);
                     Console.WriteLine("Appointment retained for later processing.");
-                    break; // Optional: exit to avoid infinite loop
                 }
             }
 
-            Console.WriteLine($"{initialCount} appointment requests processed.");
+           
         }
+
 
         // Unlock User Account
         public static void UnlockUserAccount()
@@ -2444,11 +2528,15 @@ namespace MiniBankProject
                     // Loop through all accounts by index
                     for (int i = 0; i < AccountNumbers.Count; i++)
                     {
+
                         // Create a line of data combining account info separated by commas
-                        string dataLine = $"{AccountNumbers[i]},{AccountUserNames[i]},{AccountUserNationalID[i]},{UserBalances[i]},{AccountUserHashedPasswords[i].Trim()},{UserPhoneNumbers[i]},{UserAddresses[i]}, {UserHasActiveLoan[i]},{UserLoanAmounts[i]}, {UserLoanInterestRates[i]}, {UserIsLocked[i]}";// use Trim() with AccountUserHashedPasswords[i] to remove any extra spaces
+                        string dataLine = $"{AccountNumbers[i]},{AccountUserNames[i]},{AccountUserNationalID[i]},{UserBalances[i]},{AccountUserHashedPasswords[i]},{UserPhoneNumbers[i]},{UserAddresses[i]}, {UserHasActiveLoan[i]},{UserLoanAmounts[i]}, {UserLoanInterestRates[i]}, {UserIsLocked[i]}, {UserHasActiveAppointment[i]},{UserAppointmentDates[i]}";// use Trim() with AccountUserHashedPasswords[i] to remove any extra spaces
                         //Console.WriteLine(dataLine);
                         // Write the data line into the file
                         writer.WriteLine(dataLine);
+
+                        
+
                     }
                 }
                 // Inform the user that accounts were saved successfully
@@ -2494,6 +2582,11 @@ namespace MiniBankProject
                 UserLoanInterestRates.Clear();
                 // Clear the list of User Is Locked 
                 UserIsLocked.Clear();
+                //clear the list of User Has Active Appointment
+                UserHasActiveAppointment.Clear();
+                //clear the list of User Appointment Dates
+                UserAppointmentDates.Clear();
+
                 // Clear the list of transactions
                 //transactions.Clear();
 
@@ -2530,6 +2623,10 @@ namespace MiniBankProject
                         UserLoanInterestRates.Add(Convert.ToDouble(parts[9]));
                         // Add the Account user locked to list
                         UserIsLocked.Add(Convert.ToBoolean(parts[10]));
+                        // Add the User Has Active Appointment to list
+                        UserHasActiveAppointment.Add(Convert.ToBoolean(parts[11]));
+                        // Add the User Appointment Dates to list
+                        UserAppointmentDates.Add(DateTime.Parse(parts[12].Trim())); // use Trim() to remove any extra spaces
 
                         // Update the last account number if this one is bigger
                         if (accNum > LastAccountNumber)
@@ -2792,6 +2889,8 @@ namespace MiniBankProject
                         // Write each transaction list as a single line in the file
                         writer.WriteLine(string.Join(";", UserTransactions[i]));
                     }
+
+
                 }
                 // Inform the user that transactions were saved successfully
               //Console.WriteLine("User transactions saved successfully.");
@@ -2897,7 +2996,10 @@ namespace MiniBankProject
                     {
                         // Write the request line into the file
                         writer.WriteLine(request);
+                        Console.WriteLine(request);
+                        
                     }
+                   
                 }
                 // Inform the user that appointment requests were saved successfully
                 Console.WriteLine("Appointment requests saved successfully.");
