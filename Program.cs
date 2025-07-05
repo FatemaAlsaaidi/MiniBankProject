@@ -21,6 +21,7 @@ using System.Runtime.ConstrainedExecution;
 using System.Collections.Generic;
 using System.Net;
 using System.Security.Principal;
+using System.Reflection.PortableExecutable;
 
 namespace MiniBankProject
 {
@@ -73,6 +74,7 @@ namespace MiniBankProject
 
         // User Transactions History
         static List<List<string>> UserTransactions = new List<List<string>>(); // MonthlyStatementGenerator
+
 
 
         // generate ID number for Admin account 
@@ -197,11 +199,11 @@ namespace MiniBankProject
                     // case to Deposit
                     case '2':
                         IndexID = UserLoginWith_ID_Password();
-                        Console.ReadLine();
 
                         if (IndexID != -1)
                         {
-                            Console.WriteLine("Login successfully");
+                            Console.WriteLine($"{AccountUserNames[IndexID]} Login successfully");
+                            Console.ReadLine();
                             UserMenuOperations(IndexID);
                             Console.ReadLine();
 
@@ -778,7 +780,7 @@ namespace MiniBankProject
                         IsDeposit = true;
                         
                         // Record the transaction in the user's transaction history.
-                        string transactionRecord = $"{DateTime.Now:yyyy-MM-dd},Deposit, {FinalDepositAmount},{convertedAmount},{UserBalances[IndexID]}";
+                        string transactionRecord = $"{AccountUserNationalID[IndexID]},{DateTime.Now:yyyy-MM-dd},Deposit, {FinalDepositAmount},{convertedAmount},{UserBalances[IndexID]}";
                         for (int i = UserTransactions.Count; i < UserBalances.Count; i++)
                         {
                             UserTransactions.Add(new List<string>());
@@ -1333,39 +1335,44 @@ namespace MiniBankProject
         // Display All User Transaction 
         public static void PrintAllTransactions(int IndexID)
         {
+            
             LoadUserTransactionsFromFile();
-
-            if (IndexID < 0 || IndexID >= UserTransactions.Count)
+            string[] parts = new string[0]; // Initialize parts to avoid null reference
+            bool isfoundTransaction = false;
+            //Read each line until the end of the file
+            for (int i=0; i< UserTransactions.Count; i++)
             {
-                Console.WriteLine("Invalid user index.");
-                return;
+                parts = UserTransactions[i][0].Split(','); // Split the first transaction line to get the account number
+                if (parts.Length > 0 && parts[0] == AccountUserNationalID[IndexID])
+                {
+                    isfoundTransaction = true;
+                }
             }
-
-            var userTransactions = UserTransactions[IndexID];
-
-            if (userTransactions.Count == 0)
+            if (!isfoundTransaction)
             {
                 Console.WriteLine("No transactions found for this user.");
                 return;
             }
-
-            Console.WriteLine($"\nAll Transactions for {AccountUserNames[IndexID]} (Account: {AccountNumbers[IndexID]}):");
-            Console.WriteLine("Date         | Type      | Amount   | Balance After");
-            Console.WriteLine("---------------------------------------------------");
-
-            foreach (var transaction in userTransactions)
+            else
             {
-                var parts = transaction.Split(',');
-                if (parts.Length >= 4)
+                Console.WriteLine($"All Transactions for {AccountUserNames[IndexID]} (Account: {AccountNumbers[IndexID]}):");
+                Console.WriteLine("Date         | Type      | Amount   | Balance After");
+                Console.WriteLine("---------------------------------------------------");
+                // Loop through the user's transactions and print them
+                foreach (var transaction in UserTransactions[IndexID])
                 {
-                    string date = parts[0];
-                    string type = parts[1];
-                    string amount = parts[2];
-                    string balanceAfter = parts[3];
-
-                    Console.WriteLine($"{date,-12} | {type,-9} | {amount,-8} | {balanceAfter}");
+                    parts = transaction.Split(',');
+                    if (parts.Length >= 4)
+                    {
+                        string date = parts[0];
+                        string type = parts[1];
+                        string amount = parts[2];
+                        string balanceAfter = parts[3];
+                        Console.WriteLine($"{date,-12} | {type,-9} | {amount,-8} | {balanceAfter}");
+                    }
                 }
             }
+
         }
 
         // Request Book Appointment Function
@@ -2784,7 +2791,7 @@ namespace MiniBankProject
                     }
                 }
                 // Inform the user that transactions were saved successfully
-                Console.WriteLine("User transactions saved successfully.");
+              //Console.WriteLine("User transactions saved successfully.");
             }
             catch // If any error occurs during saving
             {
