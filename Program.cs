@@ -252,10 +252,11 @@ namespace MiniBankProject
                         break;
                     // case to Deposit
                     case '2':
-                        IndexID = AdminLoginWithID();
-                        Console.ReadLine(); // Wait for user input before continuing
+                        IndexID = AdminLoginWith_ID_Password();
                         if (IndexID !=-1)
                         {
+                            Console.WriteLine($"{AdminName[IndexID]} Successfully Login");
+                            Console.ReadLine();
                             AdminMenuOperations();
                             Console.ReadLine();
                         }
@@ -382,6 +383,7 @@ namespace MiniBankProject
                     if (string.IsNullOrEmpty(hashedPassword))
                     {
                         Console.WriteLine("Password cannot be empty. Please try again.");
+                        IsSave = false; 
                         tries++;
                     }
                     else
@@ -406,6 +408,7 @@ namespace MiniBankProject
                     if (IsValidPhone == false)
                     {
                         Console.WriteLine("Invalid phone number format. Please enter a valid phone number.");
+                        IsSave = false;
                         tries++;
                     }
                     else
@@ -1801,75 +1804,29 @@ namespace MiniBankProject
 
         }
         // login Admin with ID and password
-        public static int AdminLoginWithID()
+        public static int AdminLoginWith_ID_Password()
         {
-            int tries = 0;
+            int FoundIndex = -1;
             int IndexId = -1;
-            bool AdminExist = false;
-            string ID = "";
-            do
+            IndexId = EnterAdminID();
+            if (IndexId == -1)
             {
-                // Prompt user to enter their National ID
-                Console.WriteLine("Enter You National ID: ");
-                ID = Console.ReadLine(); // Read user input from console
-                AdminExist = AdminLogin(ID);
-                if(!AdminExist)
-                {
-                    tries++;
-                }
-                
-            } while (AdminExist == false && tries <3);
-            if (tries == 3)
-            {
-                Console.WriteLine("You have exceeded the number of times you are allowed to enter a valid ID.");
+                FoundIndex  = - 1;
             }
-            tries = 0;
-           
-            // Step 3: Validate Password
-            bool passwordCorrect = false;
-
-            do
+            else
             {
-                Console.Write("Enter your password: ");
-                string enteredPassword = ReadPassword().Trim(); // masked input
-                string enteredHashed = HashPassword(enteredPassword);
-
-                // Fetch the stored hashed password for this user
-                bool PassExist = AdminExistPassword(enteredHashed);
-               
-                if (PassExist == true)
+                IndexId = EnterAdminPassword(IndexId);
+                if (IndexId == -1)
                 {
-                    passwordCorrect = true;
-                    Console.WriteLine("\nLogin successful.");
+                    FoundIndex = -1;
                 }
+
                 else
                 {
-                    Console.WriteLine("\nIncorrect password. Please try again.");
-                    passwordCorrect = false;
-                    tries++;
+                    FoundIndex = IndexId;
                 }
 
-            } while (passwordCorrect == false && tries < 3);
-
-            if (tries == 3)
-            {
-                Console.WriteLine("You have exceeded the allowed attempts for password entry.");
-                IndexId = -1; // login fails
-            }
-
-            if (AdminExist == true && passwordCorrect == true)
-            {
-                //loop thriugh items in list
-                for (int i = 0; i < AdminID.Count; i++)
-                {
-                    //check if Input exist in the list 
-                    if (AdminID[i] == ID)
-                    {
-                        // Store the index of the user with the matching ID.
-                        IndexId = i;
-                    }
-                }
-            }
+            }         
 
             return IndexId;
         }
@@ -2418,12 +2375,10 @@ namespace MiniBankProject
         }
 
         //*************************** Ask to enter ID number *************************
-
-
-        // valid Admin exist  with id 
-        public static bool AdminLogin(string ID)
+        public static int IDAdminExist(string ID)
         {
-            bool ValidUserLogin = true;
+            int AdminIndex = -1;
+
             // Start of try block to catch any unexpected runtime exceptions
             try
             {
@@ -2438,21 +2393,15 @@ namespace MiniBankProject
                         // Check if the current ID in the list matches the user's input
                         if (AdminID[i] == ID)
                         {
+                            AdminIndex = i;
                             userFound = true;  // If match found, set userFound = true
                             break;
                         }
                     }
-                    if (userFound)
-                    {
-                        Console.WriteLine("Admin Login successful!");
-                        ValidUserLogin = true;
-
-                    }
-                    else
-                    {
+                    if (userFound == false)
+                    { 
                         // If loop completes with no match, show message
-                        Console.WriteLine("User not found. please create an account before do this process");
-                        ValidUserLogin = false;  // User not found, so login fails
+                        Console.WriteLine("This Admin ID dose not exist");
 
                     }
                 }
@@ -2460,17 +2409,16 @@ namespace MiniBankProject
                 {
                     Console.WriteLine("National ID is invalid! please try agine");
                     Console.WriteLine("National ID should be exactly 8 digits and numeric only.");
-                    ValidUserLogin = false;
                 }
 
             }
             catch (Exception e) // Catch any exceptions that occur
             {
                 Console.WriteLine(e.Message); // Print the error message
-                ValidUserLogin = false;
+                AdminIndex = -1;
             }
             //Console.WriteLine($"UserLogin result: {ValidUserLogin}"); // Print the result of UserLogin for debugging
-            return ValidUserLogin;
+            return AdminIndex;
 
         }
 
@@ -3035,6 +2983,7 @@ namespace MiniBankProject
         }
 
 
+        // =========================================================================== User Enter ID and Password ===========================
         // ************************************* Methods for password *************************************
         public static int EnterUserPassword(int Index_ID)
         {
@@ -3177,7 +3126,7 @@ namespace MiniBankProject
                 return IndexId;
             }
             tries = 0;
-            // Step 2: Find user index
+            // Step 2: Find user ID index
             if (UserExist == true) // or if(UserExist)
             {
                 //loop thriugh items in list
@@ -3201,8 +3150,74 @@ namespace MiniBankProject
             return IndexId;
         }
 
+        // ================================================================ Admin Enter ID and Password =====================
+
+        public static int EnterAdminID()
+        {
+            int tries = 0;
+            int AdminIndex = -1;
+            string ID = "";
+            do
+            {
+                // Prompt user to enter their National ID
+                Console.WriteLine("Enter You National ID: ");
+                ID = Console.ReadLine(); // Read user input from console
+                AdminIndex = IDAdminExist(ID);
+                if (AdminIndex == -1)
+                {
+                    tries++;
+                }
+
+            } while (AdminIndex == -1 && tries < 3);
+            if (tries == 3)
+            {
+                Console.WriteLine("You have exceeded the number of times you are allowed to enter a valid ID.");
+                Console.ReadLine();
+                return AdminIndex;
+            }
+            tries = 0;
+            return AdminIndex;
+        }
+        public static int EnterAdminPassword(int Index_ID)
+        {
+            int tries = 0;
+            int IndexId = -1;
+            bool PassExist = false;
 
 
+            do
+            {
+                Console.Write("Enter your password: ");
+                string enteredPassword = ReadPassword().Trim(); // masked input
+                string enteredHashed = HashPassword(enteredPassword);
+
+                // Fetch the stored hashed password for this user
+                PassExist = AdminExistPassword(enteredHashed);
+
+                if (PassExist == true)
+                {
+                    IndexId = Index_ID;
+                }
+                else
+                {
+                    Console.WriteLine("\nIncorrect password. Please try again.");
+                    tries++;
+                }
+
+            } while (PassExist ==false && tries < 3);
+
+            if (tries == 3)
+            {
+                Console.WriteLine("You have exceeded the allowed attempts for password entry.");
+                Console.ReadLine();
+                IndexId = -1; // login fails
+            }
+            tries = 0;
+            return IndexId;
+
+
+
+        }
 
 
 
