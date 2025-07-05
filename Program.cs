@@ -98,6 +98,16 @@ namespace MiniBankProject
         static List<double> UserLoanInterestRates = new List<double>();
         static Queue<string> LoanRequests = new Queue<string>();
 
+        // Fixed Currency Exchange Rates
+        static readonly Dictionary<string, double> ExchangeRates = new Dictionary<string, double>
+        {
+            {"USD", 3.8},
+            {"EUR", 4.1},
+            {"OMR", 1.0},
+            {"UAE", 10.0}
+        };
+
+
 
         // ======================================== Menu Functions =================================
         static void Main(string[] args)
@@ -698,6 +708,7 @@ namespace MiniBankProject
                 Console.WriteLine("Error: Invalid user index for deposit operation.");
                 return;
             }
+
             int tries = 0;
             // Initialize a boolean flag to control the deposit loop.
             bool IsDeposit = false;
@@ -711,15 +722,31 @@ namespace MiniBankProject
                 // Repeat until a valid deposit is made.
                 do
                 {
-                    //IndexID = LoginWithID();
-                    Console.WriteLine("Enter the amount of money you want to deposit: ");
-                    string DepositAmount = Console.ReadLine();
+                    Console.WriteLine("Select deposit currency: \n1. OMR\n2. USD\n3. EUR\n4. UAE");
+                    string choice = Console.ReadLine();
+                    string currency = choice == "1" ? "OMR" : choice == "2" ? "USD" : choice == "3" ? "EUR" : choice == "4" ? "UAE": "";
+
+                    if (string.IsNullOrEmpty(currency))
+                    {
+                        Console.WriteLine("Invalid selection.");
+                        return;
+                    }
+                 
+                    Console.WriteLine($"Enter the amount to deposit in {currency}: ");
+                    if (!double.TryParse(Console.ReadLine(), out double originalAmount) || originalAmount <= 0)
+                    {
+                        Console.WriteLine("Invalid deposit amount.");
+                        return;
+                    }
+                    // convert double to string 
+                    string DepositAmount = originalAmount.ToString("F2"); // Format to 2 decimal places
+
                     // Validate the entered amount using a custom method.
                     bool ValidDepositAmount = AmountValid(DepositAmount);
                     if (ValidDepositAmount == false)
                     {
                         // Display error if the input is not valid.
-                        Console.WriteLine("Invalid input");
+                        Console.WriteLine("Invalid deposit Amount Format, should be  00.00");
                         IsDeposit = false;
                         tries++;
                     }
@@ -729,17 +756,23 @@ namespace MiniBankProject
                         // convert string to double using TryParse
                         double.TryParse(DepositAmount, out FinalDepositAmount);
 
+                        // Convert to OMR
+                        double rate = ExchangeRates[currency];
+                        double convertedAmount = FinalDepositAmount / rate;
+
+                        Console.WriteLine($"Converted Amount from {currency} : {FinalDepositAmount} to OMR: {convertedAmount:F2}");
+
                         // Update the user's balance by adding the deposit amount.
-                        UserBalances[IndexID] = UserBalances[IndexID] + FinalDepositAmount;
+                        UserBalances[IndexID] = UserBalances[IndexID] + convertedAmount;
 
                         // Display success message and the new balance.
-                        Console.WriteLine($"Successfully deposited {FinalDepositAmount} to your account.");
-                        PrintReceipt(transactionType: "Deposit", amount: FinalDepositAmount, balance: UserBalances[IndexID]);
+                        Console.WriteLine($"Successfully deposited {convertedAmount} {currency} to your account.");
+                        PrintReceipt(transactionType: "Deposit", amount: convertedAmount, balance: UserBalances[IndexID]);
                         // Set the flag to true to exit the loop.
                         IsDeposit = true;
                         
                         // Record the transaction in the user's transaction history.
-                        string transactionRecord = $"{DateTime.Now:yyyy-MM-dd},Deposit,{FinalDepositAmount},{UserBalances[IndexID]}";
+                        string transactionRecord = $"{DateTime.Now:yyyy-MM-dd},Deposit, {FinalDepositAmount},{convertedAmount},{UserBalances[IndexID]}";
                         for (int i = UserTransactions.Count; i < UserBalances.Count; i++)
                         {
                             UserTransactions.Add(new List<string>());
@@ -906,6 +939,10 @@ namespace MiniBankProject
             {
                 do
                 {
+                    Console.WriteLine("Select Recive currency: \n1. OMR\n2. USD\n3. EUR\n4. UAE");
+                    string choice = Console.ReadLine();
+                    string currency = choice == "1" ? "OMR" : choice == "2" ? "USD" : choice == "3" ? "EUR" : choice == "4" ? "UAE" : "";
+
                     Console.WriteLine("Enter the amount of money you want to transfer: ");
                     TransferAmount = Console.ReadLine();
 
@@ -921,12 +958,17 @@ namespace MiniBankProject
                         if (CheckBalanceAmount(FinalTransferAmount, UserIndexID))
                         {
                             UserBalances[UserIndexID] -= FinalTransferAmount;
-                            UserBalances[UserIndexID2] += FinalTransferAmount;
+
+                            // Convert to Recive currency 
+                            double rate = ExchangeRates[currency];
+                            double convertedAmount = FinalTransferAmount * rate;
+                            Console.WriteLine($"Converted Amount from OMR: {FinalTransferAmount} to {currency}: {convertedAmount:F2}");
+                            UserBalances[UserIndexID2] += convertedAmount;
 
                             Console.WriteLine($"Successfully transferred {FinalTransferAmount} from Account {AccountNumbers[UserIndexID]} to Account {AccountNumbers[UserIndexID2]}");
                             Console.WriteLine($"Your Current Balance is {UserBalances[UserIndexID]}");
 
-                            string transactionRecord = $"{DateTime.Now:yyyy-MM-dd},Transfer From,{FinalTransferAmount},{UserBalances[UserIndexID]},To:{AccountNumbers[UserIndexID2]}";
+                            string transactionRecord = $"{DateTime.Now:yyyy-MM-dd},Transfer From,{FinalTransferAmount},{UserBalances[UserIndexID]},To:{AccountNumbers[UserIndexID2]}, Converted to {convertedAmount}{currency}";
                             string transactionRecord2 = $"{DateTime.Now:yyyy-MM-dd},Transfer To,{FinalTransferAmount},{UserBalances[UserIndexID2]},From:{AccountNumbers[UserIndexID]}";
 
                             for (int i = UserTransactions.Count; i < UserBalances.Count; i++)
