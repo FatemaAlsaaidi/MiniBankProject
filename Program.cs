@@ -2096,22 +2096,38 @@ namespace MiniBankProject
         // Show Top 3 Richest Customers 
         public static void ShowTop3RichestCustomers()
         {
-            // Check if there are at least 3 users
-            if (UserBalances.Count < 3)
-            {
-                Console.WriteLine("Not enough users to determine the top 3 richest customers.");
-                return;
-            }
-            // Create a list of tuples containing user index and balance
-            var userBalancesWithIndex = UserBalances.Select((balance, index) => (index, balance)).ToList();
-            // Sort the list by balance in descending order
-            var top3Richest = userBalancesWithIndex.OrderByDescending(x => x.balance).Take(3).ToList();
-            // Display the top 3 richest customers
-            Console.WriteLine("Top 3 Richest Customers:");
+            //// Check if there are at least 3 users
+            //if (UserBalances.Count < 3)
+            //{
+            //    Console.WriteLine("Not enough users to determine the top 3 richest customers.");
+            //    return;
+            //}
+            //// Create a list of tuples containing user index and balance
+            //var userBalancesWithIndex = UserBalances.Select((balance, index) => (index, balance)).ToList();
+            //// Sort the list by balance in descending order
+            //var top3Richest = userBalancesWithIndex.OrderByDescending(x => x.balance).Take(3).ToList();
+            //// Display the top 3 richest customers
+            //Console.WriteLine("Top 3 Richest Customers:");
+            //foreach (var user in top3Richest)
+            //{
+            //    Console.WriteLine($"Account Number: {AccountNumbers[user.index]}, Name: {AccountUserNames[user.index]}, Balance: {user.balance}");
+            //}
+
+            var top3Richest = AccountNumbers
+                .Select((accNum, index) => new
+                {
+                    AccountNumber = accNum,
+                    Name = AccountUserNames[index],
+                    Balance = UserBalances[index]
+                })
+                .OrderByDescending(x => x.Balance)
+                .Take(3);
+
             foreach (var user in top3Richest)
             {
-                Console.WriteLine($"Account Number: {AccountNumbers[user.index]}, Name: {AccountUserNames[user.index]}, Balance: {user.balance}");
+                Console.WriteLine($"{user.AccountNumber} | {user.Name} | {user.Balance}");
             }
+
         }
         /* 
          Export All Account Info to a New File (CSV or txt) 
