@@ -553,6 +553,7 @@ namespace MiniBankProject
                     // Transfer Money
                     case "5":
                         // Ask user to enter the National ID of the account to transfer money to
+                        Console.WriteLine("Enter the National ID of the account you want to transfer money to.....");
                         int UserIndexID2 = EnterUserID();
                         if (UserIndexID2 != -1 && UserIndexID2 != IndexID) // when user login to its account by accountID number, this number save in value IndexID which decalre in "internal calss program" so when want to transer from its account to another account, no need to enter its accountIDNumber agine it save temberary in variable "IndexID"
                         {
@@ -945,11 +946,11 @@ namespace MiniBankProject
 
             try
             {
+                Console.WriteLine("Select Recive currency: \n1. OMR\n2. USD\n3. EUR\n4. UAE");
+                string choice = Console.ReadLine();
+                string currency = choice == "1" ? "OMR" : choice == "2" ? "USD" : choice == "3" ? "EUR" : choice == "4" ? "UAE" : "";
                 do
                 {
-                    Console.WriteLine("Select Recive currency: \n1. OMR\n2. USD\n3. EUR\n4. UAE");
-                    string choice = Console.ReadLine();
-                    string currency = choice == "1" ? "OMR" : choice == "2" ? "USD" : choice == "3" ? "EUR" : choice == "4" ? "UAE" : "";
 
                     Console.WriteLine("Enter the amount of money you want to transfer: ");
                     TransferAmount = Console.ReadLine();
@@ -971,11 +972,13 @@ namespace MiniBankProject
                             double rate = ExchangeRates[currency];
                             double convertedAmount = FinalTransferAmount * rate;
                             Console.WriteLine($"Converted Amount from OMR: {FinalTransferAmount} to {currency}: {convertedAmount:F2}");
+
+                            // Update the receiver's balance
                             UserBalances[UserIndexID2] += convertedAmount;
 
                             Console.WriteLine($"Successfully transferred {FinalTransferAmount} from Account {AccountNumbers[UserIndexID]} to Account {AccountNumbers[UserIndexID2]}");
                             Console.WriteLine($"Your Current Balance is {UserBalances[UserIndexID]}");
-
+                            Console.ReadLine();
                             string transactionRecord = $"{DateTime.Now:yyyy-MM-dd},Transfer From,{FinalTransferAmount},{UserBalances[UserIndexID]},To:{AccountNumbers[UserIndexID2]}, Converted to {convertedAmount}{currency}";
                             string transactionRecord2 = $"{DateTime.Now:yyyy-MM-dd},Transfer To,{FinalTransferAmount},{UserBalances[UserIndexID2]},From:{AccountNumbers[UserIndexID]}";
 
