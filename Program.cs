@@ -2214,6 +2214,53 @@ namespace MiniBankProject
         }
 
         // View and Process Appointment Requests
+        /*public static void ProcessRequestAppointments()
+          {
+              LoadAppointmentRequestsFromFile();
+
+              if (AppointmentRequests.Count == 0)
+              {
+                  Console.WriteLine("No appointment requests to process.");
+                  return;
+              }
+
+              int initialCount = AppointmentRequests.Count;
+              Queue<string> tempQueue = new Queue<string>();
+
+              while (AppointmentRequests.Count > 0)
+              {
+                  string request = AppointmentRequests.Dequeue();
+                  string[] parts = request.Split('|');
+                  if (parts.Length < 4)
+                      continue;
+
+                  int userIndex = int.Parse(parts[0]);
+                  string userNationalID = parts[1];
+                  string serviceType = parts[2];
+                  DateTime appointmentDateTime = DateTime.Parse(parts[3]);
+
+                  Console.WriteLine($"Appointment Request for {AccountUserNames[userIndex]} (Acc#: {AccountNumbers[userIndex]}):");
+                  Console.WriteLine($"Service: {serviceType}, Date/Time: {appointmentDateTime}");
+                  Console.Write("Mark appointment as completed? (y/n): ");
+                  string choice = Console.ReadLine().ToLower();
+
+                  if (choice == "y")
+                  {
+                      UserHasActiveAppointment[userIndex] = false;
+                      UserAppointmentDates[userIndex] = DateTime.MinValue;
+                      Console.WriteLine("Appointment marked as completed.");
+
+                      Console.WriteLine($"{initialCount} appointment requests processed.");
+                  }
+                  else
+                  {
+                      tempQueue.Enqueue(request);
+                      Console.WriteLine("Appointment retained for later processing.");
+                  }
+              }
+
+
+          }*/
         public static void ProcessRequestAppointments()
         {
             LoadAppointmentRequestsFromFile();
@@ -2224,12 +2271,37 @@ namespace MiniBankProject
                 return;
             }
 
-            int initialCount = AppointmentRequests.Count;
+            Console.WriteLine("Filter appointments by service type:");
+            Console.WriteLine("1. Loan Discussion");
+            Console.WriteLine("2. Account Consultation");
+            Console.Write("Select option (or press Enter to process all): ");
+            string filterChoice = Console.ReadLine().Trim();
+            string serviceFilter = filterChoice switch
+            {
+                "1" => "Loan Discussion",
+                "2" => "Account Consultation",
+                _ => null  // No filter
+            };
+
+            // Convert the queue to a list and apply filtering via LINQ
+            var filteredAppointments = AppointmentRequests
+                .Where(req =>
+                {
+                    var parts = req.Split('|');
+                    return parts.Length >= 4 && (serviceFilter == null || parts[2] == serviceFilter);
+                })
+                .ToList();
+
+            if (filteredAppointments.Count == 0)
+            {
+                Console.WriteLine("No matching appointment requests found.");
+                return;
+            }
+
             Queue<string> tempQueue = new Queue<string>();
 
-            while (AppointmentRequests.Count > 0)
+            foreach (var request in AppointmentRequests)
             {
-                string request = AppointmentRequests.Dequeue();
                 string[] parts = request.Split('|');
                 if (parts.Length < 4)
                     continue;
@@ -2239,7 +2311,14 @@ namespace MiniBankProject
                 string serviceType = parts[2];
                 DateTime appointmentDateTime = DateTime.Parse(parts[3]);
 
-                Console.WriteLine($"Appointment Request for {AccountUserNames[userIndex]} (Acc#: {AccountNumbers[userIndex]}):");
+                // Skip if filtering and this item doesn't match
+                if (serviceFilter != null && serviceType != serviceFilter)
+                {
+                    tempQueue.Enqueue(request);
+                    continue;
+                }
+
+                Console.WriteLine($"\nAppointment Request for {AccountUserNames[userIndex]} (Acc#: {AccountNumbers[userIndex]}):");
                 Console.WriteLine($"Service: {serviceType}, Date/Time: {appointmentDateTime}");
                 Console.Write("Mark appointment as completed? (y/n): ");
                 string choice = Console.ReadLine().ToLower();
@@ -2249,8 +2328,6 @@ namespace MiniBankProject
                     UserHasActiveAppointment[userIndex] = false;
                     UserAppointmentDates[userIndex] = DateTime.MinValue;
                     Console.WriteLine("Appointment marked as completed.");
-
-                    Console.WriteLine($"{initialCount} appointment requests processed.");
                 }
                 else
                 {
@@ -2259,8 +2336,10 @@ namespace MiniBankProject
                 }
             }
 
-           
+            AppointmentRequests = tempQueue;
+            SaveAppointmentRequestsToFile();
         }
+
 
 
         // Unlock User Account
