@@ -2408,15 +2408,31 @@ namespace MiniBankProject
         {
 
             // Loop through the list of registered National IDs
-            for (int i = 0; i < AccountUserNationalID.Count; i++)
+            //for (int i = 0; i < AccountUserNationalID.Count; i++)
+            //{
+            //    // Check if the current ID in the list matches the user's input
+            //    if (AccountUserNationalID[i] == UserID)
+            //    {
+            //        return true; // User ID exists in the list
+            //    }
+            //}
+            //return false; // User ID does not exist in the list
+
+            ///////////////////////// Use Linq in search////////////////
+            var user = AccountUserNationalID
+                .Select((id, index) => new { Index = index, ID = id })
+                .FirstOrDefault(x => x.ID == UserID);
+
+            if (user != null)
             {
-                // Check if the current ID in the list matches the user's input
-                if (AccountUserNationalID[i] == UserID)
-                {
-                    return true; // User ID exists in the list
-                }
+                //int index = user.Index;
+                return true;
             }
-            return false; // User ID does not exist in the list
+
+            else
+            {
+                return false; // User ID does not exist in the list
+            }
         }
 
         // numeric validation with double value
