@@ -60,6 +60,9 @@ namespace MiniBankProject
         static List<string> UserAddresses = new List<string>();
         // String list to store user feedbacks
         static List<string> UserFeedbacks = new List<string>();
+        // List to store user IDs for quick access
+        static List<bool> UserIsLocked = new List<bool>();
+
 
         // Store appointment requests as "IndexID|ServiceType|DateTime"
         static Queue<string> AppointmentRequests = new Queue<string>();
@@ -1560,6 +1563,7 @@ namespace MiniBankProject
                 Console.WriteLine("11. Average Of FeedBack Rate");
                 Console.WriteLine("12. View User Transaction");
                 Console.WriteLine("13. View and Process Appointment Requests");
+                Console.WriteLine("14. Unlock User Account");
                 Console.WriteLine("0. Return to Main Menu");
                 Console.Write("Select option: ");
                 string adminChoice = Console.ReadLine().Trim(); // Read user input from console
@@ -1776,6 +1780,12 @@ namespace MiniBankProject
                         ProcessRequestAppointments();
                         Console.ReadLine();
                         break;
+
+                    // case to Unlock User Account
+                    case "14":
+                        UnlockUserAccount();
+                        Console.ReadLine();
+                        break;
                     // case to Return to Main Menu
                     case "0":
                         InAdminMenu = false; // this will exit the loop and return
@@ -1973,9 +1983,8 @@ namespace MiniBankProject
                     UserHasActiveAppointment.Add(false);
                     // Add user appointment dates in the UserAppointmentDates list
                     UserAppointmentDates.Add(DateTime.MinValue);
-
-
-
+                    // Add user transactions in the UserTransactions list
+                    UserIsLocked.Add(false);
 
                     Console.WriteLine($"Account created for {UserName} with Account Number: {NewAccountIDNumber}, Phone Number: {UserPhoneNumber} and address: {UserAddress}");
                     // display message to the user that account created successfully
@@ -2187,6 +2196,28 @@ namespace MiniBankProject
             Console.WriteLine($"{initialCount} appointment requests processed.");
         }
 
+        // Unlock User Account
+        public static void UnlockUserAccount()
+        {
+            Console.Write("Enter National ID of the user to unlock: ");
+            string enteredID = Console.ReadLine();
+
+            int IndexID = AccountUserNationalID.IndexOf(enteredID);
+            if (IndexID == -1)
+            {
+                Console.WriteLine("User with this National ID does not exist.");
+                return;
+            }
+
+            if (!UserIsLocked[IndexID])
+            {
+                Console.WriteLine("This account is not locked.");
+                return;
+            }
+
+            UserIsLocked[IndexID] = false;
+            Console.WriteLine($"Account for {AccountUserNames[IndexID]} has been unlocked successfully.");
+        }
 
 
         // ************************************************* String Validation **********************************************
@@ -2456,7 +2487,7 @@ namespace MiniBankProject
                     for (int i = 0; i < AccountNumbers.Count; i++)
                     {
                         // Create a line of data combining account info separated by commas
-                        string dataLine = $"{AccountNumbers[i]},{AccountUserNames[i]},{AccountUserNationalID[i]},{UserBalances[i]},{AccountUserHashedPasswords[i].Trim()},{UserPhoneNumbers[i]},{UserAddresses[i]}, {UserHasActiveLoan[i]},{UserLoanAmounts[i]}, {UserLoanInterestRates[i]}";// use Trim() with AccountUserHashedPasswords[i] to remove any extra spaces
+                        string dataLine = $"{AccountNumbers[i]},{AccountUserNames[i]},{AccountUserNationalID[i]},{UserBalances[i]},{AccountUserHashedPasswords[i].Trim()},{UserPhoneNumbers[i]},{UserAddresses[i]}, {UserHasActiveLoan[i]},{UserLoanAmounts[i]}, {UserLoanInterestRates[i]}, {UserIsLocked[i]}";// use Trim() with AccountUserHashedPasswords[i] to remove any extra spaces
                         //Console.WriteLine(dataLine);
                         // Write the data line into the file
                         writer.WriteLine(dataLine);
@@ -2503,6 +2534,8 @@ namespace MiniBankProject
                 UserLoanAmounts.Clear();
                 // Clear the list of User loan interest rate 
                 UserLoanInterestRates.Clear();
+                // Clear the list of User Is Locked 
+                UserIsLocked.Clear();
                 // Clear the list of transactions
                 //transactions.Clear();
 
@@ -2537,6 +2570,8 @@ namespace MiniBankProject
                         UserLoanAmounts.Add(Convert.ToDouble(parts[8]));
                         // Add the user Loan Interest rate to list
                         UserLoanInterestRates.Add(Convert.ToDouble(parts[9]));
+                        // Add the Account user locked to list
+                        UserIsLocked.Add(Convert.ToBoolean(parts[10]));
 
                         // Update the last account number if this one is bigger
                         if (accNum > LastAccountNumber)
@@ -3034,6 +3069,9 @@ namespace MiniBankProject
             if (tries == 3)
             {
                 Console.WriteLine("You have exceeded the allowed attempts for password entry.");
+                // Lock account after 3 failed attempts
+                UserIsLocked[IndexID] = true;
+                Console.WriteLine("Account locked due to 3 failed login attempts. Please contact admin to unlock.");
                 Indexpassword = -1; // login fails
             }
 
@@ -3129,6 +3167,8 @@ namespace MiniBankProject
                     tries++;
                 }
 
+                
+
             } while (UserExist == false && tries < 3);
             if (tries == 3)
             {
@@ -3148,6 +3188,13 @@ namespace MiniBankProject
                     {
                         // Store the index of the user with the matching ID.
                         IndexId = i;
+                        // Check if the account is locked
+                        if (UserIsLocked[IndexId])
+                        {
+                            Console.WriteLine("This account is locked due to too many failed login attempts. Please contact the admin to unlock.");
+                            return -1;
+                        }
+
                     }
                 }
             }
