@@ -1477,9 +1477,9 @@ namespace MiniBankProject
 
                     string AppointmentRequest = IndexID + "|" + AccountUserNationalID[IndexID] + "|" + serviceType + "|" + appointmentDateTime.ToString("yyyy-MM-dd HH:mm");
                     AppointmentRequests.Enqueue(AppointmentRequest);
-                    //UserHasActiveAppointment[IndexID] = true;
-                    //UserAppointmentDates[IndexID] = appointmentDateTime;
-                   
+                    UserHasActiveAppointment[IndexID] = true;
+                    UserAppointmentDates[IndexID] = appointmentDateTime;
+
                     Console.WriteLine($"Appointment for {serviceType} booked successfully on {appointmentDateTime}.");
                     SaveAppointmentRequestsToFile();
                 }
