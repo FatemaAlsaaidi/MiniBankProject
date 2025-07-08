@@ -24,5 +24,11 @@ Mini Bank Project is a simple banking application . The project is built using C
 ## Technologies Used
 - C#
 
-## Case Study Digram
+## UML Diagrams
+### Case Study Digram
 ![](BankApplicationSystemDigrams-CaseStudy.png)
+
+### System Sequence Diagram
+![](BankApplicationSystemDigrams-SequenceDiagram.png)
+
+
