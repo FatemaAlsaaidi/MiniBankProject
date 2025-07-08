@@ -20,3 +20,9 @@ Mini Bank Project is a simple banking application . The project is built using C
 - View account creation date
 - View account last updated date
 - View account interest rate
+
+## Technologies Used
+- C#
+
+## Case Study Digram
+![](BankApplicationSystemDigrams-CaseStudy.png)
